@@ -1,0 +1,17 @@
+{
+  "name": "Lannhattan",
+  "short_name": "Lannhattan",
+  "start_url": "/Lannhattan/",
+  "scope": "/Lannhattan/",
+  "display": "standalone",
+  "background_color": "#aadfff",
+  "theme_color": "#aadfff",
+  "icons": [
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
