@@ -97,10 +97,12 @@
 
 .section-label { color: #7cc8ff; font-weight: 600; }
 
+/* Mobile: make sidebar narrower */
 @media (max-width: 600px) {
   #sidebar {
-    width: 80%;
-    font-size: 14px;
+    width: 50%;      /* was 80% */
+    left: 10px;      /* was 20px */
+    font-size: 13px; /* a bit tighter */
     padding: 10px;
   }
 }
