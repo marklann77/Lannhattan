@@ -97,15 +97,27 @@
 
 .section-label { color: #7cc8ff; font-weight: 600; }
 
-/* Mobile: make sidebar narrower */
+/* Mobile: make sidebar now at the top for phone */
 @media (max-width: 600px) {
   #sidebar {
-    width: 35%;      /* was 80% */
-    left: 10px;      /* was 20px */
-    font-size: 12px; /* a bit tighter */
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;         /* full width */
+    max-height: 40%;     /* sidebar height limit */
+    overflow-y: auto;    /* scroll if content is taller */
+    font-size: 14px;
     padding: 10px;
+    border-radius: 0;    /* flat edges for full-width bar */
+  }
+  #map {
+    position: absolute;
+    top: 40%;           /* start map below sidebar */
+    bottom: 0;
+    width: 100%;
   }
 }
+
 
   </style>
 </head>
