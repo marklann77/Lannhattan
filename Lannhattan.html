@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>Lannhattan</title>
+  <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
+
+  <!-- PWA bits -->
+  <link rel="manifest" href="manifest.json" />
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => navigator.serviceWorker.register('service-worker.js'));
+    }
+  </script>
+
+  <!-- MapLibre -->
+  <link href="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.css" rel="stylesheet" />
+  <script src="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.js"></script>
+
+  <!-- Firebase (non-module) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics-compat.js"></script>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyBMpJyjeVafIbPZQC-LeS3AnXrmZ-9abuk",
+    authDomain: "lannhattan-5a604.firebaseapp.com",
+    projectId: "lannhattan-5a604",
+    storageBucket: "lannhattan-5a604.firebasestorage.app",
+    messagingSenderId: "309697476545",
+    appId: "1:309697476545:web:4960a3de453dc8a722e140",
+    measurementId: "G-006EPCCPY0"
+  };
+  firebase.initializeApp(firebaseConfig);
+  firebase.analytics();
+  // Make globals so other scripts always see them
+  window.db = firebase.firestore();
+</script>
+
+  <style>
+    body { margin: 0; padding: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; }
+    #map { position: absolute; top: 0; bottom: 0; width: 100%; }
+
+    /* Sidebar card */
+    #sidebar {
+      position: absolute; top: 20px; left: 20px; width: 240px;
+      background: rgba(0,0,0,0.85); color: #fff; padding: 14px; border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.5); z-index: 2; backdrop-filter: blur(6px);
+      max-height: calc(100vh - 40px); overflow: auto;
+    }
+    #sidebar h3 { margin: 0 0 8px; font-size: 18px; }
+    #sidebar label, #sidebar select, #sidebar input, #sidebar textarea, #sidebar button { font-size: 14px; }
+    #sidebar select, #sidebar input, #sidebar textarea {
+      width: 100%; margin: 6px 0; padding: 6px 8px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.08); color: #fff; outline: none;
+    }
+    #sidebar button { width: 100%; margin-top: 6px; padding: 8px; border: 0; border-radius: 8px; cursor: pointer; background:#3b82f6; color:#fff; }
+    #sidebar button:hover { filter: brightness(1.05); }
+    #sidebar hr { border: 0; height: 1px; background: rgba(255,255,255,0.15); margin: 12px 0; }
+    #sidebar .row { display: flex; gap: 8px; }
+    #sidebar .row > * { flex: 1; }
+
+    /* Popup glass */
+    .mapboxgl-popup-content {
+      background: rgba(255,255,255,0.15);
+      backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+      color: white; border-radius: 12px; padding: 12px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.2);
+    }
+    .popup-content h3 { margin: 0 0 6px; font-size: 18px; font-weight: 700; }
+    .popup-content p { margin: 6px 0; }
+    .popup-content a { color: #aadfff; text-decoration: underline; }
+    .popup-content img {
+      max-width: 100%; height: auto; border-radius: 6px; display: block; margin-bottom: 8px;
+    }
+
+    /* align all checkboxes neatly */
+#sidebar .checkbox,
+#tag-filters label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 6px 0;
+  line-height: 1.2;
+}
+
+#sidebar input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  vertical-align: middle;
+}
+
+.section-label { color: #7cc8ff; font-weight: 600; }
+
+  </style>
+</head>
+<body>
+
+  <!-- Sidebar -->
+  <div id="sidebar">
+    <h3>Filter</h3>
+    <label for="day-select" class="section-label">Day</label>
+    <select id="day-select" onchange="filterMarkers()">
+      <option value="all">All Days</option>
+      <option>Monday</option><option>Tuesday</option><option>Wednesday</option>
+      <option>Thursday</option><option>Friday</option><option>Saturday</option><option>Sunday</option>
+    </select>
+    <label style="display:flex;gap:8px;align-items:center;margin:6px 0;">
+    </label>
+
+   <label class="checkbox"><input type="checkbox" id="free-toggle" onchange="filterMarkers()"> Only Free</label><br>
+    
+    <label class="section-label">Tags</label><br>
+    <div id="tag-filters" style="line-height:1.6"><br>
+      <label><input type="checkbox" value="art and culture" onchange="filterMarkers()"> Arts & Culture</label><br>
+      <label><input type="checkbox" value="nature" onchange="filterMarkers()"> Nature</label><br>
+      <label><input type="checkbox" value="nightlife" onchange="filterMarkers()"> Nightlife</label><br>
+      <label><input type="checkbox" value="food" onchange="filterMarkers()"> Food</label><br>
+      <label><input type="checkbox" value="shopping" onchange="filterMarkers()"> Shopping</label><br>
+      <label><input type="checkbox" value="views" onchange="filterMarkers()"> Views</label><br>
+      <label><input type="checkbox" value="miscellaneous" onchange="filterMarkers()"> Miscellaneous</label><br>
+      <label><input type="checkbox" value="exercise" onchange="filterMarkers()"> Exercise</label><br>
+      <label><input type="checkbox" value="coffee" onchange="filterMarkers()"> Coffee & WFH</label><br>
+    </div>
+
+    <hr>
+
+    <h3>Add New Place</h3>
+    <input type="text" id="name-input" placeholder="Name" />
+    <div class="row">
+      <input type="text" id="lat-input" placeholder="Lat" />
+      <input type="text" id="lng-input" placeholder="Lng" />
+      <input type="text" id="addr-input" placeholder="Address (optional if Lat/Lng provided)" />
+    </div>
+    <input type="text" id="link-input" placeholder="Website URL (optional)" />
+    <input type="text" id="image-input" placeholder="Image URL (optional)" />
+    <input type="text" id="day-input" placeholder="Day (e.g. Saturday)" />
+    <input type="text" id="tags-input" placeholder="Tags (comma-separated)" />
+    <input type="text" id="notes-input" placeholder="Notes (optional)" />
+    <label style="display:flex;gap:8px;align-items:center;">
+      <input type="checkbox" id="free-input" /> Free
+    </label>
+    <script>
+      
+// MapTiler Geocoding (needs your same API key)
+async function geocodeAddress(q) {
+  const url = `https://api.maptiler.com/geocoding/${encodeURIComponent(q)}.json?key=qiFcY9lvHhTSrubUMX2y&limit=1`;
+  const resp = await fetch(url);
+  if (!resp.ok) throw new Error("Geocoding request failed");
+  const data = await resp.json();
+  if (!data.features || !data.features.length) throw new Error("No results for that address");
+  const [lng, lat] = data.features[0].center;
+  return { lat, lng };
+}
+</script>
+
+    <button id="submit-btn" onclick="submitPlace()">Add Place</button>
+  </div>
+
+  <div id="map"></div>
+
+  <script>
+    // Map
+    const map = new maplibregl.Map({
+      container: 'map',
+      style: 'https://api.maptiler.com/maps/darkmatter/style.json?key=qiFcY9lvHhTSrubUMX2y',
+      center: [-74.0060, 40.7128],
+      zoom: 11
+    });
+    map.dragRotate.enable();
+    map.touchZoomRotate.enableRotation();
+
+    // Seed local items
+    const projects = [
+
+      { name: "GrowNYC Teaching Garden", coords: [-74.0167, 40.6872],
+        image: "https://www.grownyc.org/files/imagecache/photo_full/gi_tg_plants.jpg",
+        link: "https://www.grownyc.org/teachinggarden", free: true, borough: "Manhattan",
+        category: "Food", day: "Saturday", tags: ["garden", "education"], notes: "" },
+      { name: "New York Public Library (Bryant Park)", coords: [-73.9819, 40.7532],
+        image: "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/14/21/75/2c/new-york-public-library.jpg?w=900&h=500&s=1",
+        link: "https://www.nypl.org/locations/snfl", free: true, borough: "Manhattan",
+        category: "Arts", day: "All Days", tags: ["library", "study"], notes: "" },
+      { name: "St. Patrick’s Cathedral", coords: [-73.9759, 40.7585],
+        image: "https://upload.wikimedia.org/wikipedia/commons/3/35/St_Patrick%27s_Cathedral_-_New_York_City.jpg",
+        link: "https://saintpatrickscathedral.org", free: true, borough: "Manhattan",
+        category: "Arts", day: "All Days", tags: [], notes: "" },
+      { name: "Little Italy", coords: [-73.9973, 40.7191],
+        image: "https://upload.wikimedia.org/wikipedia/commons/f/f5/Little_Italy_-_New_York_City.jpg",
+        link: "https://www.nycgo.com/boroughs-neighborhoods/manhattan/little-italy",
+        free: true, borough: "Manhattan", category: "Food", day: "All Days", tags: [], notes: "" },
+      { name: "Chinatown", coords: [-73.9967, 40.7158],
+        image: "https://upload.wikimedia.org/wikipedia/commons/8/89/Chinatown_NYC.jpg",
+        link: "https://www.nycgo.com/boroughs-neighborhoods/manhattan/chinatown",
+        free: true, borough: "Manhattan", category: "Food", day: "All Days", tags: [], notes: "" },
+      { name: "Avra Madison Estiatorio", coords: [-73.9728, 40.7639],
+        image: "https://media-cdn.tripadvisor.com/media/photo-s/1c/d6/31/98/photo3jpg.jpg",
+        link: "https://theavragroup.com/avra-madison/", free: false, borough: "Manhattan",
+        category: "Food", day: "All Days", tags: [], notes: "" },
+      { name: "Empire State Building", coords: [-73.9857, 40.7484],
+        image: "https://upload.wikimedia.org/wikipedia/commons/0/08/Empire_State_Building_by_David_Shankbone_crop.jpg",
+        link: "https://www.esbnyc.com", free: false, borough: "Manhattan",
+        category: "Arts", day: "All Days", tags: [], notes: "" },
+      { name: "Museum of Modern Art (MoMA)", coords: [-73.9776, 40.7614],
+        image: "https://upload.wikimedia.org/wikipedia/commons/d/d0/Museum_of_Modern_Art_%28New_York%29_2015.jpg",
+        link: "https://www.moma.org", free: false, borough: "Manhattan",
+        category: "Arts", day: "All Days", tags: [], notes: "" },
+      { name: "Solomon R. Guggenheim Museum", coords: [-73.9590, 40.7830],
+        image: "https://upload.wikimedia.org/wikipedia/commons/8/84/Guggenheim_Museum_Exterior.jpg",
+        link: "https://www.guggenheim.org", free: false, borough: "Manhattan",
+        category: "Arts", day: "All Days", tags: [], notes: "" },
+      { name: "International Center of Photography", coords: [-73.9877, 40.7188],
+        image: "https://www.icp.org/sites/default/files/styles/responsive_large/public/ICP_Bowery.jpg",
+        link: "https://www.icp.org", free: false, borough: "Manhattan",
+        category: "Arts", day: "All Days", tags: [], notes: "" },
+      { name: "Fotografiska New York", coords: [-73.9845, 40.7416],
+        image: "https://upload.wikimedia.org/wikipedia/commons/f/f2/Fotografiska_NY.jpg",
+        link: "https://www.fotografiska.com/nyc/", free: false, borough: "Manhattan",
+        category: "Arts", day: "All Days", tags: [], notes: "" },
+      { name: "TWA Hotel Skating Rink", coords: [-73.7846, 40.6437],
+        image: "https://www.twahotel.com/sites/default/files/styles/hero_desktop/public/2022-11/hero-ice-rink-2.jpg",
+        link: "https://www.twahotel.com/ice-rink", free: false, borough: "Queens",
+        category: "Active", day: "All Days", tags: [], notes: "" }
+    ];
+
+    // Firebase-backed + local
+    let firebasePlaces = [];
+    let markers = [];
+
+    function renderMarkers(data) {
+      markers.forEach(m => m.remove());
+      markers = [];
+
+      data.forEach(p => {
+       const isFirestore = !!p.id;
+const tagsHTML = Array.isArray(p.tags) && p.tags.length ? `<p><strong>Tags:</strong> ${p.tags.join(', ')}</p>` : '';
+const notesHTML = (typeof p.notes === 'string' && p.notes.trim()) ? `<p>${p.notes}</p>` : '';
+const imgHTML = p.image ? `<img src="${p.image}" alt="${p.name}">` : '';
+const linkHTML = p.link ? `<a href="${p.link}" target="_blank">More info</a>` : '';
+const editHTML = isFirestore ? `<button onclick="startEdit('${p.id}')" style="margin-top:8px;width:100%;padding:6px;border:0;border-radius:8px;background:#10b981;color:#fff;cursor:pointer;">Edit</button>` : '';
+
+const popupHTML = `
+  <div class="popup-content">
+    <h3>${p.name}</h3>
+    ${imgHTML}
+    ${tagsHTML}
+    ${notesHTML}
+    ${linkHTML}
+    ${editHTML}
+  </div>
+`;
+
+        const lngLat = Array.isArray(p.coords) ? p.coords : [p.lng, p.lat];
+
+        const marker = new maplibregl.Marker()
+          .setLngLat(lngLat)
+          .setPopup(new maplibregl.Popup({ offset: 25 }).setHTML(popupHTML))
+          .addTo(map);
+
+        markers.push(marker);
+      });
+    }
+
+    function filterMarkers() {
+      const daySel = (document.getElementById('day-select')?.value || 'all').toLowerCase();
+      const onlyFree = document.getElementById('free-toggle')?.checked || false;
+
+      const tagInputs = document.querySelectorAll('#tag-filters input[type="checkbox"]:checked');
+      const selectedTags = Array.from(tagInputs).map(i => i.value.toLowerCase());
+
+      const all = [...projects, ...firebasePlaces];
+
+      const filtered = all.filter(p => {
+        const day = (p.day || 'All Days').toLowerCase();
+        const dayMatch = (daySel === 'all') || (day === daySel);
+        const freeMatch = !onlyFree || !!p.free;
+        const tagArr = Array.isArray(p.tags) ? p.tags.map(t => t.toLowerCase()) : [];
+        const tagMatch = selectedTags.length === 0 || selectedTags.every(t => tagArr.includes(t));
+        return dayMatch && freeMatch && tagMatch;
+      });
+
+      renderMarkers(filtered);
+    }
+    window.filterMarkers = filterMarkers;
+
+    let editingId = null;
+
+window.startEdit = function(id) {
+  const p = firebasePlaces.find(x => x.id === id);
+  if (!p) return alert('Could not load item to edit.');
+
+  document.getElementById("name-input").value  = p.name || "";
+  document.getElementById("link-input").value  = p.link || "";
+  document.getElementById("image-input").value = p.image || "";
+  document.getElementById("day-input").value   = p.day || "All Days";
+  document.getElementById("tags-input").value  = (Array.isArray(p.tags) ? p.tags.join(", ") : "");
+  document.getElementById("notes-input").value = p.notes || "";
+  document.getElementById("lat-input").value   = String(p.lat ?? "");
+  document.getElementById("lng-input").value   = String(p.lng ?? "");
+  if (document.getElementById("addr-input")) document.getElementById("addr-input").value = "";
+  document.getElementById("free-input").checked = !!p.free;
+
+  editingId = id;
+  const btn = document.getElementById('submit-btn');
+  if (btn) btn.textContent = 'Update Place';
+};
+
+    // Realtime Firestore subscription
+    map.on('load', () => {
+      renderMarkers(projects); // show locals first
+      db.collection('places').onSnapshot(snap => {
+  firebasePlaces = snap.docs.map(d => {
+    const v = d.data();
+    return {
+      id: d.id,
+      name: v.name,
+      link: v.link || '',
+      day: v.day || 'All Days',
+      tags: Array.isArray(v.tags) ? v.tags : [],
+      notes: v.notes || '',
+      free: !!v.free,
+      image: v.image || '',
+      lat: Number(v.lat),
+      lng: Number(v.lng),
+      coords: [Number(v.lng), Number(v.lat)]
+    };
+  });
+  filterMarkers();
+});
+
+    });
+
+    // Add to Firestore
+async function submitPlace() {
+  const name = document.getElementById("name-input").value.trim();
+  const link = document.getElementById("link-input").value.trim();
+  const image = document.getElementById("image-input").value.trim();
+  const day = (document.getElementById("day-input").value.trim()) || 'All Days';
+  const tags = document.getElementById("tags-input").value.split(',').map(t => t.trim()).filter(Boolean);
+  const notes = document.getElementById("notes-input").value.trim();
+  const latVal = document.getElementById("lat-input").value.trim();
+  const lngVal = document.getElementById("lng-input").value.trim();
+  const free = document.getElementById("free-input").checked;
+  const addr = document.getElementById("addr-input") ? document.getElementById("addr-input").value.trim() : "";
+
+  let lat = parseFloat(latVal);
+  let lng = parseFloat(lngVal);
+
+  // If no coords but address provided, geocode (see part D)
+  if ((isNaN(lat) || isNaN(lng)) && addr) {
+    const geo = await geocodeAddress(addr); // will throw on failure
+    lat = geo.lat;
+    lng = geo.lng;
+  }
+
+  if (!name || isNaN(lat) || isNaN(lng)) {
+    alert("Name + valid coordinates (or geocodable address) required.");
+    return;
+  }
+
+  const docData = { name, link, image, day, tags, notes, lat, lng, free };
+
+  const op = editingId
+  ? db.collection("places").doc(editingId).update(docData)
+  : db.collection("places").add(docData);
+
+op.then(() => {
+  if (editingId) {
+    editingId = null;
+    const btn = document.getElementById('submit-btn');
+    if (btn) btn.textContent = 'Add Place';
+  }
+
+    // realtime snapshot will render it; clear fields
+    document.getElementById("name-input").value = "";
+    document.getElementById("link-input").value = "";
+    document.getElementById("image-input").value = "";
+    document.getElementById("day-input").value = "";
+    document.getElementById("tags-input").value = "";
+    document.getElementById("notes-input").value = "";
+    document.getElementById("lat-input").value = "";
+    document.getElementById("lng-input").value = "";
+    if (document.getElementById("addr-input")) document.getElementById("addr-input").value = "";
+    document.getElementById("free-input").checked = false;
+  }).catch(err => alert("Error saving to Firebase: " + err.message));
+}
+</script>
+
+</body>
+</html>
