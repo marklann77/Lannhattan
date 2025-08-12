@@ -1,7 +1,7 @@
 {
   "name": "Lannhattan",
   "short_name": "Lannhattan",
-  "start_url": "/Lannhattan/",
+  "start_url": "/Lannhattan/Lannhattan.html",
   "scope": "/Lannhattan/",
   "display": "standalone",
   "background_color": "#aadfff",
@@ -15,3 +15,4 @@
     }
   ]
 }
+
