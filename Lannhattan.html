@@ -13,14 +13,18 @@
     }
   </script>
 
+  <!-- MapLibre -->
   <link href="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.css" rel="stylesheet" />
   <script src="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.js"></script>
 
+  <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
 
+  <!-- Firebase -->
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics-compat.js"></script>
   <script>
     const firebaseConfig = {
       apiKey: "AIzaSyBMpJyjeVafIbPZQC-LeS3AnXrmZ-9abuk",
@@ -28,344 +32,1190 @@
       projectId: "lannhattan-5a604",
       storageBucket: "lannhattan-5a604.firebasestorage.app",
       messagingSenderId: "309697476545",
-      appId: "1:309697476545:web:4960a3de453dc8a722e140"
+      appId: "1:309697476545:web:4960a3de453dc8a722e140",
+      measurementId: "G-006EPCCPY0"
     };
     firebase.initializeApp(firebaseConfig);
+    firebase.analytics();
     window.db = firebase.firestore();
     window.auth = firebase.auth();
   </script>
 
 <style>
   :root {
-    --bg: #f0f2f5; --surface: #ffffff; --surface2: #f5f6f8; --border: #dde1e7;
-    --text: #1a1d23; --text-muted: #7a8394; --accent: #e8c547; --accent2: #3b7fe8;
-    --want: #d4a017; --been: #22a55b; --tag-bg: #eef0f3; --radius: 12px;
-    --font-body: 'DM Sans', sans-serif; --font-mono: 'DM Mono', monospace;
+    --bg: #f0f2f5;
+    --surface: #ffffff;
+    --surface2: #f5f6f8;
+    --border: #dde1e7;
+    --text: #1a1d23;
+    --text-muted: #7a8394;
+    --accent: #e8c547;
+    --accent2: #3b7fe8;
+    --want: #d4a017;
+    --been: #22a55b;
+    --tag-bg: #eef0f3;
+    --radius: 12px;
+    --font-body: 'DM Sans', sans-serif;
+    --font-mono: 'DM Mono', monospace;
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body, html { height: 100%; background: var(--bg); color: var(--text); font-family: var(--font-body); overflow: hidden; }
-  #map { position: absolute; inset: 0; z-index: 0; }
 
+  body, html {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    overflow: hidden;
+  }
+
+  /* ── MAP ── */
+  #map {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+  }
+
+  /* ── TOP BAR ── */
   #topbar {
-    position: absolute; top: 0; left: 0; right: 0; z-index: 100;
-    display: flex; align-items: center; gap: 10px; padding: 12px 14px;
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 14px;
     background: linear-gradient(to bottom, rgba(240,242,245,0.97) 0%, rgba(240,242,245,0) 100%);
   }
 
-  #wordmark { font-family: var(--font-mono); font-size: 17px; font-weight: 500; letter-spacing: 0.05em; color: #b8960f; flex-shrink: 0; margin-right: 4px; }
+  #wordmark {
+    font-family: var(--font-mono);
+    font-size: 17px;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    color: #b8960f;
+    flex-shrink: 0;
+    margin-right: 4px;
+  }
 
-  #filter-scroll { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; flex: 1; align-items: center; }
+  /* ── FILTER PILLS ── */
+  #filter-scroll {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    flex: 1;
+    align-items: center;
+  }
   #filter-scroll::-webkit-scrollbar { display: none; }
 
   .pill {
-    flex-shrink: 0; padding: 5px 11px; border-radius: 20px; border: 1px solid var(--border);
-    background: rgba(255,255,255,0.92); color: var(--text-muted); font-size: 12px; font-family: var(--font-mono); cursor: pointer;
-    transition: all 0.15s; white-space: nowrap; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px);
+    flex-shrink: 0;
+    padding: 5px 11px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: rgba(255,255,255,0.92);
+    color: var(--text-muted);
+    font-size: 12px;
+    font-family: var(--font-mono);
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
   }
-  .pill.active { background: var(--accent); color: #1a1d23; border-color: #b8960f; font-weight: 500; }
+  .pill:hover { border-color: var(--accent); color: var(--text); }
+  .pill.active {
+    background: var(--accent);
+    color: #1a1d23;
+    border-color: #b8960f;
+    font-weight: 500;
+  }
   .pill.status-pill.want.active  { background: var(--want); color: #1a1d23; border-color: var(--want); }
   .pill.status-pill.been.active  { background: var(--been); color: #1a1d23; border-color: var(--been); }
 
+  /* ── ADD BUTTON ── */
   #add-btn {
-    position: absolute; bottom: 28px; right: 18px; z-index: 100;
-    width: 52px; height: 52px; border-radius: 50%; background: var(--accent);
-    color: #1a1d23; font-size: 26px; border: none; cursor: pointer;
-    box-shadow: 0 4px 20px rgba(232,197,71,0.4); transition: transform 0.15s;
+    position: absolute;
+    bottom: 28px;
+    right: 18px;
+    z-index: 100;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #1a1d23;
+    font-size: 26px;
+    font-weight: 400;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 20px rgba(232,197,71,0.4);
+    transition: transform 0.15s, box-shadow 0.15s;
   }
-  #add-btn:hover { transform: scale(1.08); }
+  #add-btn:hover { transform: scale(1.08); box-shadow: 0 6px 28px rgba(232,197,71,0.55); }
 
+  /* ── BOTTOM SHEET (shared) ── */
   .sheet {
-    position: absolute; bottom: 0; left: 0; right: 0; z-index: 200;
-    background: var(--surface); border-radius: 20px 20px 0 0; padding: 20px 18px 32px;
-    max-height: 85vh; overflow-y: auto; transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    z-index: 200;
+    background: var(--surface);
+    border-radius: 20px 20px 0 0;
+    padding: 20px 18px 32px;
+    max-height: 85vh;
+    overflow-y: auto;
+    transform: translateY(100%);
+    transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+    box-shadow: 0 -4px 24px rgba(0,0,0,0.10);
   }
   .sheet.open { transform: translateY(0); }
 
-  .sheet-handle { width: 36px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 18px; }
-  .sheet-title { font-family: var(--font-mono); font-size: 14px; font-weight: 500; letter-spacing: 0.08em; color: var(--text-muted); text-transform: uppercase; margin-bottom: 18px; }
+  .sheet-handle {
+    width: 36px;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    margin: 0 auto 18px;
+  }
 
-  #overlay { position: absolute; inset: 0; z-index: 150; background: rgba(0,0,0,0.35); opacity: 0; pointer-events: none; transition: opacity 0.2s; backdrop-filter: blur(2px); }
+  .sheet-title {
+    font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin-bottom: 18px;
+  }
+
+  /* ── OVERLAY ── */
+  #overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 150;
+    background: rgba(0,0,0,0.35);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+  }
   #overlay.visible { opacity: 1; pointer-events: all; }
 
-  .form-label { display: block; font-size: 11px; font-family: var(--font-mono); color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; margin-top: 14px; }
-  .form-input { width: 100%; padding: 11px; background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; outline: none; }
-  
-  .status-select { display: flex; gap: 8px; margin-bottom: 14px; }
-  .status-btn { flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface2); color: var(--text-muted); font-family: var(--font-mono); font-size: 12px; cursor: pointer; text-align: center; transition: all 0.15s; }
+  /* ── ADD FORM ── */
+  .search-wrapper {
+    position: relative;
+    margin-bottom: 14px;
+  }
+
+  .search-wrapper input {
+    width: 100%;
+    padding: 13px 14px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .search-wrapper input:focus { border-color: var(--accent); }
+  .search-wrapper input::placeholder { color: var(--text-muted); }
+
+  #autocomplete-list {
+    position: absolute;
+    top: 100%;
+    left: 0; right: 0;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 var(--radius) var(--radius);
+    z-index: 300;
+    max-height: 180px;
+    overflow-y: auto;
+  }
+  .autocomplete-item {
+    padding: 10px 14px;
+    font-size: 14px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--border);
+    line-height: 1.3;
+  }
+  .autocomplete-item:last-child { border-bottom: none; }
+  .autocomplete-item:hover { background: var(--border); }
+  .autocomplete-item strong { display: block; color: var(--text); font-weight: 500; }
+  .autocomplete-item span { color: var(--text-muted); font-size: 12px; }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .form-input {
+    width: 100%;
+    padding: 11px 13px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .form-input:focus { border-color: var(--accent); }
+  .form-input::placeholder { color: var(--text-muted); }
+
+  .form-label {
+    display: block;
+    font-size: 11px;
+    font-family: var(--font-mono);
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 6px;
+    margin-top: 14px;
+  }
+
+  /* Status selector */
+  .status-select {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  .status-btn {
+    flex: 1;
+    padding: 10px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: center;
+  }
   .status-btn.active-want { background: rgba(212,160,23,0.12); border-color: var(--want); color: var(--want); }
   .status-btn.active-been { background: rgba(34,165,91,0.12); border-color: var(--been); color: var(--been); }
 
-  .tag-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
-  .tag-chip { padding: 6px 12px; border-radius: 20px; border: 1px solid var(--border); background: var(--surface2); color: var(--text-muted); font-size: 12px; font-family: var(--font-mono); cursor: pointer; transition: all 0.15s; }
-  .tag-chip.selected { background: rgba(59,127,232,0.12); border-color: var(--accent2); color: var(--accent2); }
+  /* Tag chips in form */
+  .tag-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 14px;
+  }
+  .tag-chip {
+    padding: 6px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text-muted);
+    font-size: 12px;
+    font-family: var(--font-mono);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .tag-chip.selected {
+    background: rgba(59,127,232,0.12);
+    border-color: var(--accent2);
+    color: var(--accent2);
+  }
 
-  .toggle-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; background: var(--surface2); border-radius: 8px; border: 1px solid var(--border); margin-bottom: 14px; cursor: pointer; }
-  .toggle { width: 40px; height: 22px; background: var(--border); border-radius: 11px; position: relative; transition: background 0.2s; }
+  /* Free toggle */
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    background: var(--surface2);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    margin-bottom: 14px;
+    cursor: pointer;
+  }
+  .toggle-row span { font-size: 14px; color: var(--text); }
+  .toggle {
+    width: 40px;
+    height: 22px;
+    background: var(--border);
+    border-radius: 11px;
+    position: relative;
+    transition: background 0.2s;
+  }
   .toggle.on { background: var(--been); }
-  .toggle::after { content: ''; position: absolute; width: 16px; height: 16px; background: white; border-radius: 50%; top: 3px; left: 3px; transition: left 0.2s; }
+  .toggle::after {
+    content: '';
+    position: absolute;
+    width: 16px;
+    height: 16px;
+    background: white;
+    border-radius: 50%;
+    top: 3px;
+    left: 3px;
+    transition: left 0.2s;
+  }
   .toggle.on::after { left: 21px; }
 
-  #detail-img { width: 100%; height: 160px; object-fit: cover; border-radius: 8px; margin-bottom: 14px; display: none; }
-  .detail-tag { padding: 4px 10px; border-radius: 20px; background: var(--tag-bg); color: var(--text-muted); font-size: 11px; font-family: var(--font-mono); margin-right: 6px; }
-
-  .marker-dot { width: 12px; height: 12px; border-radius: 50%; border: 2px solid rgba(0,0,0,0.5); cursor: pointer; transition: transform 0.15s; }
-  .marker-dot.want { background: var(--want); }
-  .marker-dot.been { background: var(--been); }
-  .marker-dot.unset { background: var(--accent2); }
-
-  #auth-bar { position: absolute; bottom: 92px; left: 18px; z-index: 100; }
-  #sign-in-btn {
-    display: flex; align-items: center; gap: 8px; padding: 9px 14px;
-    background: rgba(255,255,255,0.92); border: 1px solid var(--border); border-radius: 20px;
-    color: var(--text-muted); font-family: var(--font-mono); font-size: 12px; cursor: pointer; backdrop-filter: blur(6px);
+  /* Submit btn */
+  .submit-btn {
+    width: 100%;
+    padding: 14px;
+    border-radius: var(--radius);
+    border: none;
+    background: var(--accent);
+    color: #1a1d23;
+    font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: opacity 0.15s;
+    margin-top: 4px;
   }
-  #sign-in-btn img { width: 18px; height: 18px; border-radius: 50%; }
+  .submit-btn:hover { opacity: 0.88; }
+  .submit-btn:disabled { opacity: 0.4; cursor: not-allowed; }
 
-  #autocomplete-list { position: absolute; width: 100%; background: white; z-index: 300; border: 1px solid var(--border); border-top:none; max-height: 180px; overflow-y: auto; }
-  .autocomplete-item { padding: 10px 14px; font-size: 14px; cursor: pointer; border-bottom: 1px solid var(--border); line-height: 1.3; }
-  .autocomplete-item strong { display: block; color: var(--text); font-weight: 500; }
-  .autocomplete-item span { color: var(--text-muted); font-size: 12px; }
+  /* ── PLACE DETAIL SHEET ── */
+  #detail-img {
+    width: 100%;
+    height: 160px;
+    object-fit: cover;
+    border-radius: var(--radius);
+    margin-bottom: 14px;
+    display: none;
+  }
+  #detail-name {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  #detail-addr {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+    font-family: var(--font-mono);
+  }
+  #detail-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+  .detail-tag {
+    padding: 4px 10px;
+    border-radius: 20px;
+    background: var(--tag-bg);
+    color: var(--text-muted);
+    font-size: 11px;
+    font-family: var(--font-mono);
+  }
+  #detail-notes {
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1.6;
+    margin-bottom: 14px;
+  }
+  .detail-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .detail-btn {
+    padding: 11px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    display: block;
+    transition: border-color 0.15s;
+  }
+  .detail-btn:hover { border-color: var(--accent); }
+  .detail-status-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  .detail-status-btn {
+    flex: 1;
+    padding: 10px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.15s;
+  }
+  .detail-status-btn.active-want { background: rgba(212,160,23,0.12); border-color: var(--want); color: var(--want); }
+  .detail-status-btn.active-been { background: rgba(34,165,91,0.12); border-color: var(--been); color: var(--been); }
+  .detail-edit-btn {
+    width: 100%;
+    padding: 11px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .detail-edit-btn:hover { border-color: var(--accent); color: var(--text); }
+
+  /* ── MARKER COLORS ── */
+  .marker-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid rgba(0,0,0,0.5);
+    cursor: pointer;
+    transition: transform 0.15s;
+  }
+  .marker-dot:hover { transform: scale(1.4); }
+  .marker-dot.want  { background: var(--want); box-shadow: 0 0 6px rgba(232,197,71,0.6); }
+  .marker-dot.been  { background: var(--been); box-shadow: 0 0 6px rgba(74,222,128,0.6); }
+  .marker-dot.unset { background: var(--accent2); box-shadow: 0 0 6px rgba(74,158,255,0.5); }
+
+  /* ── LEGEND ── */
+  #legend {
+    position: absolute;
+    bottom: 92px;
+    right: 18px;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    background: rgba(255,255,255,0.92);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 12px;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 11px;
+    font-family: var(--font-mono);
+    color: var(--text-muted);
+  }
+  .legend-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+  }
+
+  /* ── MAPLIBRE POPUP RESET ── */
+  .maplibregl-popup-content {
+    display: none !important;
+  }
+
+  /* ScrollBar */
+  .sheet::-webkit-scrollbar { width: 4px; }
+  .sheet::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  /* ── AUTH ── */
+  #auth-bar {
+    position: absolute;
+    bottom: 92px;
+    left: 18px;
+    z-index: 100;
+  }
+  #sign-in-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 14px;
+    background: rgba(255,255,255,0.92);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    cursor: pointer;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    transition: all 0.15s;
+  }
+  #sign-in-btn:hover { border-color: var(--accent); color: var(--text); }
+  #sign-in-btn img { width: 16px; height: 16px; border-radius: 50%; }
+
+  #auth-modal {
+    position: absolute;
+    inset: 0;
+    z-index: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.45);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+  }
+  #auth-modal.visible { opacity: 1; pointer-events: all; }
+  #auth-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 32px 28px;
+    text-align: center;
+    max-width: 300px;
+    width: 90%;
+  }
+  #auth-card h2 {
+    font-family: var(--font-mono);
+    font-size: 16px;
+    font-weight: 500;
+    color: #b8960f;
+    margin-bottom: 8px;
+    letter-spacing: 0.05em;
+  }
+  #auth-card p {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 24px;
+    line-height: 1.5;
+  }
+  #google-signin-btn {
+    width: 100%;
+    padding: 12px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    transition: border-color 0.15s;
+    margin-bottom: 10px;
+  }
+  #google-signin-btn:hover { border-color: var(--accent); }
+  #auth-cancel {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    cursor: pointer;
+    padding: 6px;
+  }
+
+  /* ── COORDS HINT ── */
+  #coords-hint {
+    font-size: 11px;
+    font-family: var(--font-mono);
+    color: var(--text-muted);
+    padding: 8px 12px;
+    background: var(--surface2);
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    margin-bottom: 12px;
+  }
 </style>
 </head>
 <body>
 
+  <!-- Map -->
   <div id="map"></div>
 
+  <!-- Top bar -->
   <div id="topbar">
     <div id="wordmark">LANNHATTAN</div>
     <div id="filter-scroll">
-      <div class="pill status-pill want" data-filter="want" onclick="window.toggleFilter(this)">🔖 Want to go</div>
-      <div class="pill status-pill been" data-filter="been" onclick="window.toggleFilter(this)">✅ Been</div>
-      <div class="pill" data-filter="free" onclick="window.toggleFilter(this)">Free</div>
-      <div class="pill" data-filter="tag:arts" onclick="window.toggleFilter(this)">Arts</div>
-      <div class="pill" data-filter="tag:nature" onclick="window.toggleFilter(this)">Nature</div>
-      <div class="pill" data-filter="tag:food" onclick="window.toggleFilter(this)">Food</div>
-      <div class="pill" data-filter="tag:nightlife" onclick="window.toggleFilter(this)">Nightlife</div>
-      <div class="pill" data-filter="tag:coffee" onclick="window.toggleFilter(this)">Coffee</div>
-      <div class="pill" data-filter="tag:views" onclick="window.toggleFilter(this)">Views</div>
-      <div class="pill" data-filter="tag:shopping" onclick="window.toggleFilter(this)">Shopping</div>
-      <div class="pill" data-filter="tag:exercise" onclick="window.toggleFilter(this)">Exercise</div>
+      <!-- status filters -->
+      <div class="pill status-pill want" data-filter="want" onclick="toggleFilter(this)">🔖 Want to go</div>
+      <div class="pill status-pill been" data-filter="been" onclick="toggleFilter(this)">✅ Been</div>
+      <div class="pill" data-filter="free" onclick="toggleFilter(this)">Free</div>
+      <!-- tag filters -->
+      <div class="pill" data-filter="tag:arts" onclick="toggleFilter(this)">Arts</div>
+      <div class="pill" data-filter="tag:nature" onclick="toggleFilter(this)">Nature</div>
+      <div class="pill" data-filter="tag:food" onclick="toggleFilter(this)">Food</div>
+      <div class="pill" data-filter="tag:nightlife" onclick="toggleFilter(this)">Nightlife</div>
+      <div class="pill" data-filter="tag:coffee" onclick="toggleFilter(this)">Coffee</div>
+      <div class="pill" data-filter="tag:views" onclick="toggleFilter(this)">Views</div>
+      <div class="pill" data-filter="tag:shopping" onclick="toggleFilter(this)">Shopping</div>
+      <div class="pill" data-filter="tag:exercise" onclick="toggleFilter(this)">Exercise</div>
     </div>
   </div>
 
+  <!-- Legend -->
+  <div id="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:var(--accent2)"></div>Unvisited</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--want)"></div>Want to go</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--been)"></div>Been here</div>
+  </div>
+
+  <!-- Auth bar -->
   <div id="auth-bar">
-    <div id="sign-in-btn" onclick="window.handleAuthClick()">
+    <div id="sign-in-btn" onclick="handleAuthClick()">
       <span id="auth-btn-label">Sign in</span>
     </div>
   </div>
 
-  <button id="add-btn" onclick="window.openAddSheet()">+</button>
-  <div id="overlay" onclick="window.closeAllSheets()"></div>
+  <!-- Auth modal -->
+  <div id="auth-modal">
+    <div id="auth-card">
+      <h2>LANNHATTAN</h2>
+      <p>Sign in with Google to add or edit places.</p>
+      <button id="google-signin-btn" onclick="signInWithGoogle()">
+        <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.08 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.18 1.48-4.97 2.35-8.16 2.35-6.26 0-11.57-3.59-13.46-8.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>
+        Continue with Google
+      </button>
+      <button id="auth-cancel" onclick="closeAuthModal()">Cancel</button>
+    </div>
+  </div>
 
+  <!-- Add button -->
+  <button id="add-btn" onclick="openAddSheet()">+</button>
+
+  <!-- Overlay -->
+  <div id="overlay" onclick="closeAllSheets()"></div>
+
+  <!-- ── ADD SHEET ── -->
   <div class="sheet" id="add-sheet">
     <div class="sheet-handle"></div>
-    <div class="sheet-title">Add a Place</div>
-    <label class="form-label">Search Location</label>
-    <div style="position:relative;">
-      <input type="text" id="name-input" class="form-input" placeholder="Search..." oninput="onNameInput()" />
+    <div class="sheet-title" id="add-sheet-title">Add a Place</div>
+
+    <!-- Name with autocomplete -->
+    <div class="search-wrapper">
+      <input type="text" id="name-input" placeholder="Search for a place…" autocomplete="off"
+        oninput="onNameInput()" onblur="scheduleHideAutocomplete()" />
       <div id="autocomplete-list"></div>
     </div>
-    
-    <label class="form-label">Status</label>
+
+    <!-- Coords hint (shown after geocode) -->
+    <div id="coords-hint" style="display:none">📍 <span id="coords-text"></span></div>
+
+    <!-- Status -->
+    <div class="form-label">Status</div>
     <div class="status-select">
-      <div class="status-btn active-want" id="sb-want" onclick="window.setStatus('want')">🔖 Want to go</div>
-      <div class="status-btn" id="sb-been" onclick="window.setStatus('been')">✅ Been here</div>
+      <div class="status-btn active-want" id="sb-want" onclick="selectStatus('want')">🔖 Want to go</div>
+      <div class="status-btn" id="sb-been" onclick="selectStatus('been')">✅ Been here</div>
     </div>
 
-    <label class="form-label">Tags</label>
+    <!-- Tags -->
+    <div class="form-label">Tags</div>
     <div class="tag-chips" id="form-tags">
-      <div class="tag-chip" data-tag="arts" onclick="this.classList.toggle('selected')">Arts</div>
-      <div class="tag-chip" data-tag="nature" onclick="this.classList.toggle('selected')">Nature</div>
-      <div class="tag-chip" data-tag="food" onclick="this.classList.toggle('selected')">Food</div>
-      <div class="tag-chip" data-tag="nightlife" onclick="this.classList.toggle('selected')">Nightlife</div>
-      <div class="tag-chip" data-tag="coffee" onclick="this.classList.toggle('selected')">Coffee</div>
-      <div class="tag-chip" data-tag="views" onclick="this.classList.toggle('selected')">Views</div>
-      <div class="tag-chip" data-tag="shopping" onclick="this.classList.toggle('selected')">Shopping</div>
-      <div class="tag-chip" data-tag="exercise" onclick="this.classList.toggle('selected')">Exercise</div>
+      <div class="tag-chip" data-tag="arts" onclick="toggleTag(this)">Arts</div>
+      <div class="tag-chip" data-tag="nature" onclick="toggleTag(this)">Nature</div>
+      <div class="tag-chip" data-tag="food" onclick="toggleTag(this)">Food</div>
+      <div class="tag-chip" data-tag="nightlife" onclick="toggleTag(this)">Nightlife</div>
+      <div class="tag-chip" data-tag="coffee" onclick="toggleTag(this)">Coffee</div>
+      <div class="tag-chip" data-tag="views" onclick="toggleTag(this)">Views</div>
+      <div class="tag-chip" data-tag="shopping" onclick="toggleTag(this)">Shopping</div>
+      <div class="tag-chip" data-tag="exercise" onclick="toggleTag(this)">Exercise</div>
     </div>
 
-    <div class="toggle-row" onclick="window.toggleFree()">
+    <!-- Free toggle -->
+    <div class="toggle-row" onclick="toggleFree()">
       <span>Free / No cover</span>
       <div class="toggle" id="free-toggle"></div>
     </div>
 
-    <label class="form-label">Notes</label>
-    <textarea id="notes-input" class="form-input" style="height:60px; resize:none;"></textarea>
-    
-    <label class="form-label">Image URL</label>
-    <input type="text" id="image-input" class="form-input" placeholder="https://..." />
+    <!-- Notes -->
+    <div class="form-label">Notes (optional)</div>
+    <textarea class="form-input" id="notes-input" rows="2" placeholder="Hours, tips, vibes…" style="resize:none;margin-bottom:14px;"></textarea>
 
-    <button onclick="window.submitPlace()" style="width:100%; padding:14px; background:var(--accent); border:none; border-radius:8px; cursor:pointer; font-weight:bold; margin-top:20px;">Save Place</button>
-    <input type="hidden" id="lat-input" /><input type="hidden" id="lng-input" />
+    <!-- Website -->
+    <!-- Image -->
+    <div class="form-label">Image URL (optional)</div>
+    <input type="url" class="form-input" id="image-input" placeholder="Paste a photo link…" style="margin-bottom:14px;" />
+
+    <div class="form-label">Website (optional)</div>
+    <input type="url" class="form-input" id="link-input" placeholder="https://…" style="margin-bottom:14px;" />
+
+    <button class="submit-btn" id="submit-btn" onclick="submitPlace()">Save Place</button>
+
+    <!-- Hidden inputs for coords -->
+    <input type="hidden" id="lat-input" />
+    <input type="hidden" id="lng-input" />
+    <input type="hidden" id="editing-id" />
   </div>
 
+  <!-- ── DETAIL SHEET ── -->
   <div class="sheet" id="detail-sheet">
     <div class="sheet-handle"></div>
-    <img id="detail-img" src="" />
-    <div id="detail-name" style="font-size:20px; font-weight:600; margin-bottom:4px;"></div>
-    <div id="detail-tags" style="margin-bottom:12px;"></div>
-    <div id="detail-notes" style="font-size:14px; color:var(--text-muted); line-height:1.6; margin-bottom:14px;"></div>
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
-      <a id="detail-link" target="_blank" style="padding:11px; border:1px solid var(--border); border-radius:8px; text-align:center; text-decoration:none; color:black; font-family:var(--font-mono); font-size:12px;">🔗 Info</a>
-      <div onclick="window.detailDirections()" style="padding:11px; border:1px solid var(--border); border-radius:8px; text-align:center; cursor:pointer; font-family:var(--font-mono); font-size:12px;">🗺 Directions</div>
+    <img id="detail-img" src="" alt="" />
+    <div id="detail-name"></div>
+    <div id="detail-addr"></div>
+    <div id="detail-tags"></div>
+    <div id="detail-notes"></div>
+    <div class="detail-status-row">
+      <div class="detail-status-btn" id="ds-want" onclick="setDetailStatus('want')">🔖 Want to go</div>
+      <div class="detail-status-btn" id="ds-been" onclick="setDetailStatus('been')">✅ Been here</div>
     </div>
+    <div class="detail-actions">
+      <a id="detail-link" class="detail-btn" target="_blank">🔗 More info</a>
+      <div class="detail-btn" onclick="detailDirections()">🗺 Directions</div>
+    </div>
+    <button class="detail-edit-btn" id="detail-edit-btn" onclick="editCurrentPlace()">Edit this place</button>
   </div>
 
 <script>
-// --- AUTH ---
+// ── AUTH ──
 let currentUser = null;
-window.handleAuthClick = function() {
-  if (currentUser) { if(confirm("Sign out?")) window.auth.signOut(); }
-  else { 
-    const provider = new firebase.auth.GoogleAuthProvider();
-    window.auth.signInWithRedirect(provider);
-  }
-};
-window.auth.getRedirectResult().then(res => { if(res.user) console.log("Login OK"); });
-window.auth.onAuthStateChanged(user => {
+
+auth.onAuthStateChanged(user => {
   currentUser = user;
-  const label = document.getElementById('auth-btn-label');
   const btn = document.getElementById('sign-in-btn');
+  const label = document.getElementById('auth-btn-label');
   if (user) {
-    label.textContent = user.displayName.split(' ')[0];
-    if (user.photoURL) btn.innerHTML = `<img src="${user.photoURL}" /> <span>${label.textContent}</span>`;
+    label.textContent = user.displayName ? user.displayName.split(' ')[0] : 'Signed in';
+    if (user.photoURL) {
+      btn.innerHTML = `<img src="${user.photoURL}" alt=""/> <span>${label.textContent}</span>`;
+    }
   } else {
     btn.innerHTML = `<span id="auth-btn-label">Sign in</span>`;
   }
 });
 
-// --- MAP ---
+function handleAuthClick() {
+  if (currentUser) {
+    if (confirm('Sign out?')) auth.signOut();
+  } else {
+    showAuthModal();
+  }
+}
+
+function showAuthModal() {
+  document.getElementById('auth-modal').classList.add('visible');
+}
+
+function closeAuthModal() {
+  document.getElementById('auth-modal').classList.remove('visible');
+}
+
+async function signInWithGoogle() {
+  const provider = new firebase.auth.GoogleAuthProvider();
+  try {
+    await auth.signInWithPopup(provider);
+    closeAuthModal();
+  } catch(e) {
+    // fallback to redirect on mobile
+    auth.signInWithRedirect(provider);
+  }
+}
+
+function requireAuth(callback) {
+  if (currentUser) {
+    callback();
+  } else {
+    showAuthModal();
+    // after sign-in, re-attempt
+    const unsub = auth.onAuthStateChanged(user => {
+      if (user) { unsub(); callback(); }
+    });
+  }
+}
+
+// ── STATE ──
+let activeFilters = new Set();
+let formStatus = 'want';
+let isFreeToggled = false;
+let allPlaces = [];
+let markers = [];
+let currentDetailId = null;
+
 const MAPTILER_KEY = 'qiFcY9lvHhTSrubUMX2y';
+
+// ── MAP ──
 const map = new maplibregl.Map({
   container: 'map',
   style: `https://api.maptiler.com/maps/streets-v2/style.json?key=${MAPTILER_KEY}`,
   center: [-73.9857, 40.7484],
   zoom: 11.5
 });
+map.dragRotate.enable();
+map.touchZoomRotate.enableRotation();
+map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-left');
 
-// Full original seed data
+// ── SEED DATA (tags normalized to match filter pills) ──
 const seedPlaces = [
-  { id: '_s0', name: "GrowNYC Teaching Garden", lat: 40.6872, lng: -74.0167, image: "https://www.grownyc.org/files/imagecache/photo_full/gi_tg_plants.jpg", link: "https://www.grownyc.org/teachinggarden", free: true, tags: ["nature","food"], status: 'been' },
-  { id: '_s1', name: "NY Public Library", lat: 40.7532, lng: -73.9819, image: "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/14/21/75/2c/new-york-public-library.jpg?w=900&h=500&s=1", link: "https://www.nypl.org/locations/snfl", free: true, tags: ["arts"], status: 'want' },
-  { id: '_s2', name: "St. Patrick's Cathedral", lat: 40.7585, lng: -73.9759, free: true, tags: ["arts"], status: 'want' },
-  { id: '_s3', name: "Empire State Building", lat: 40.7484, lng: -73.9857, free: false, tags: ["views","arts"], status: 'want' }
+  { id: '_seed_0', name: "GrowNYC Teaching Garden", lat: 40.6872, lng: -74.0167,
+    image: "https://www.grownyc.org/files/imagecache/photo_full/gi_tg_plants.jpg",
+    link: "https://www.grownyc.org/teachinggarden", free: true,
+    tags: ["nature","food"], notes: "Open Saturdays.", status: null },
+  { id: '_seed_1', name: "NY Public Library (Bryant Park)", lat: 40.7532, lng: -73.9819,
+    image: "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/14/21/75/2c/new-york-public-library.jpg?w=900&h=500&s=1",
+    link: "https://www.nypl.org/locations/snfl", free: true,
+    tags: ["arts"], notes: "", status: null },
+  { id: '_seed_2', name: "St. Patrick's Cathedral", lat: 40.7585, lng: -73.9759,
+    image: "https://upload.wikimedia.org/wikipedia/commons/3/35/St_Patrick%27s_Cathedral_-_New_York_City.jpg",
+    link: "https://saintpatrickscathedral.org", free: true,
+    tags: ["arts"], notes: "", status: null },
+  { id: '_seed_3', name: "Chinatown", lat: 40.7158, lng: -73.9967,
+    image: "https://upload.wikimedia.org/wikipedia/commons/8/89/Chinatown_NYC.jpg",
+    link: "https://www.nycgo.com/boroughs-neighborhoods/manhattan/chinatown",
+    free: true, tags: ["food"], notes: "", status: null },
+  { id: '_seed_4', name: "Avra Madison Estiatorio", lat: 40.7639, lng: -73.9728,
+    image: "https://media-cdn.tripadvisor.com/media/photo-s/1c/d6/31/98/photo3jpg.jpg",
+    link: "https://theavragroup.com/avra-madison/", free: false,
+    tags: ["food"], notes: "", status: null },
+  { id: '_seed_5', name: "Empire State Building", lat: 40.7484, lng: -73.9857,
+    image: "https://upload.wikimedia.org/wikipedia/commons/0/08/Empire_State_Building_by_David_Shankbone_crop.jpg",
+    link: "https://www.esbnyc.com", free: false,
+    tags: ["views","arts"], notes: "", status: null },
+  { id: '_seed_6', name: "Museum of Modern Art (MoMA)", lat: 40.7614, lng: -73.9776,
+    image: "https://upload.wikimedia.org/wikipedia/commons/d/d0/Museum_of_Modern_Art_%28New_York%29_2015.jpg",
+    link: "https://www.moma.org", free: false,
+    tags: ["arts"], notes: "", status: null },
+  { id: '_seed_7', name: "Guggenheim Museum", lat: 40.7830, lng: -73.9590,
+    image: "https://upload.wikimedia.org/wikipedia/commons/8/84/Guggenheim_Museum_Exterior.jpg",
+    link: "https://www.guggenheim.org", free: false,
+    tags: ["arts"], notes: "", status: null },
+  { id: '_seed_8', name: "International Center of Photography", lat: 40.7188, lng: -73.9877,
+    image: "https://www.icp.org/sites/default/files/styles/responsive_large/public/ICP_Bowery.jpg",
+    link: "https://www.icp.org", free: false,
+    tags: ["arts"], notes: "", status: null },
+  { id: '_seed_9', name: "Fotografiska New York", lat: 40.7416, lng: -73.9845,
+    image: "https://upload.wikimedia.org/wikipedia/commons/f/f2/Fotografiska_NY.jpg",
+    link: "https://www.fotografiska.com/nyc/", free: false,
+    tags: ["arts"], notes: "", status: null },
+  { id: '_seed_10', name: "TWA Hotel Skating Rink", lat: 40.6437, lng: -73.7846,
+    image: "https://www.twahotel.com/sites/default/files/styles/hero_desktop/public/2022-11/hero-ice-rink-2.jpg",
+    link: "https://www.twahotel.com/ice-rink", free: false,
+    tags: ["exercise"], notes: "", status: null },
 ];
 
-let allPlaces = [...seedPlaces];
-let markers = [];
-let activeFilters = new Set();
-let currentStatus = 'want';
-let isFree = false;
-
-window.toggleFilter = function(el) {
+// ── FILTER LOGIC ──
+function toggleFilter(el) {
   const f = el.dataset.filter;
-  activeFilters.has(f) ? activeFilters.delete(f) : activeFilters.add(f);
-  el.classList.toggle('active');
+  if (activeFilters.has(f)) {
+    activeFilters.delete(f);
+    el.classList.remove('active');
+  } else {
+    activeFilters.add(f);
+    el.classList.add('active');
+  }
   renderMarkers();
-};
-
-window.setStatus = function(s) {
-  currentStatus = s;
-  document.getElementById('sb-want').classList.toggle('active-want', s === 'want');
-  document.getElementById('sb-been').classList.toggle('active-been', s === 'been');
-};
-
-window.toggleFree = function() {
-  isFree = !isFree;
-  document.getElementById('free-toggle').classList.toggle('on', isFree);
-};
-
-function renderMarkers() {
-  markers.forEach(m => m.remove());
-  markers = [];
-  allPlaces.forEach(p => {
-    if (!matches(p)) return;
-    const el = document.createElement('div');
-    el.className = `marker-dot ${p.status || 'unset'}`;
-    el.onclick = () => openDetail(p);
-    const m = new maplibregl.Marker({ element: el }).setLngLat([p.lng, p.lat]).addTo(map);
-    markers.push(m);
-  });
 }
 
-function matches(p) {
-  for (let f of activeFilters) {
+function placeMatchesFilters(p) {
+  for (const f of activeFilters) {
     if (f === 'want' && p.status !== 'want') return false;
     if (f === 'been' && p.status !== 'been') return false;
     if (f === 'free' && !p.free) return false;
-    if (f.startsWith('tag:') && !(p.tags || []).includes(f.split(':')[1])) return false;
+    if (f.startsWith('tag:')) {
+      const tag = f.slice(4);
+      const tags = (p.tags || []).map(t => t.toLowerCase());
+      if (!tags.includes(tag)) return false;
+    }
   }
   return true;
 }
 
-function openDetail(p) {
-  const img = document.getElementById('detail-img');
-  if (p.image) { img.src = p.image; img.style.display = 'block'; } else { img.style.display = 'none'; }
-  document.getElementById('detail-name').textContent = p.name;
-  document.getElementById('detail-notes').textContent = p.notes || "";
-  document.getElementById('detail-tags').innerHTML = (p.tags || []).map(t => `<span class="detail-tag">${t}</span>`).join('');
-  document.getElementById('detail-sheet').classList.add('open');
-  document.getElementById('overlay').classList.add('visible');
-  window.currentDetail = p;
+// ── RENDER MARKERS ──
+function renderMarkers() {
+  markers.forEach(m => m.el && m.el.remove());
+  markers = [];
+
+  const filtered = allPlaces.filter(placeMatchesFilters);
+
+  filtered.forEach(p => {
+    const el = document.createElement('div');
+    el.className = `marker-dot ${p.status || 'unset'}`;
+    el.addEventListener('click', () => openDetail(p.id));
+
+    const m = new maplibregl.Marker({ element: el })
+      .setLngLat([p.lng, p.lat])
+      .addTo(map);
+    m.el = el;
+    markers.push(m);
+  });
 }
 
-window.detailDirections = function() {
-  const p = window.currentDetail;
-  window.open(`https://www.google.com/maps/dir/?api=1&destination=${p.lat},${p.lng}`, '_blank');
-};
-
-window.onNameInput = async function() {
-  const q = document.getElementById('name-input').value;
-  if (q.length < 3) return;
-  const res = await fetch(`https://api.maptiler.com/geocoding/${encodeURIComponent(q)}.json?key=${MAPTILER_KEY}&bbox=-74.3,40.4,-73.6,41.0`);
-  const data = await res.json();
-  const list = document.getElementById('autocomplete-list');
-  list.innerHTML = '';
-  data.features.forEach(f => {
-    const item = document.createElement('div');
-    item.className = 'autocomplete-item';
-    item.innerHTML = `<strong>${f.text}</strong><br><small>${f.place_name}</small>`;
-    item.onmousedown = () => {
-      document.getElementById('name-input').value = f.text;
-      document.getElementById('lat-input').value = f.center[1];
-      document.getElementById('lng-input').value = f.center[0];
-      list.innerHTML = '';
-    };
-    list.appendChild(item);
-  });
-};
-
-window.openAddSheet = function() {
-  if (!currentUser) return alert("Sign in first!");
+// ── OPEN / CLOSE SHEETS ──
+function openAddSheet(prefill) {
+  if (!currentUser) { showAuthModal(); return; }
+  closeAllSheets();
+  if (prefill) {
+    document.getElementById('name-input').value = prefill.name || '';
+    document.getElementById('lat-input').value  = prefill.lat  || '';
+    document.getElementById('lng-input').value  = prefill.lng  || '';
+    if (prefill.lat && prefill.lng) {
+      showCoordsHint(prefill.lat, prefill.lng, prefill.name);
+    }
+  }
+  document.getElementById('add-sheet-title').textContent = 'Add a Place';
+  document.getElementById('editing-id').value = '';
+  document.getElementById('submit-btn').textContent = 'Save Place';
   document.getElementById('add-sheet').classList.add('open');
   document.getElementById('overlay').classList.add('visible');
-};
+}
 
-window.closeAllSheets = function() {
+function closeAllSheets() {
   document.querySelectorAll('.sheet').forEach(s => s.classList.remove('open'));
   document.getElementById('overlay').classList.remove('visible');
-};
+  document.getElementById('autocomplete-list').innerHTML = '';
+}
 
-window.submitPlace = async function() {
-  const name = document.getElementById('name-input').value;
-  const lat = parseFloat(document.getElementById('lat-input').value);
-  const lng = parseFloat(document.getElementById('lng-input').value);
-  if (!name || isNaN(lat)) return alert("Search and select a place!");
-  const tags = Array.from(document.querySelectorAll('#form-tags .tag-chip.selected')).map(c => c.dataset.tag);
-  
-  await window.db.collection('places').add({
-    name, lat, lng, status: currentStatus, free: isFree,
-    tags, notes: document.getElementById('notes-input').value,
-    image: document.getElementById('image-input').value,
-    uid: currentUser.uid, timestamp: new Date()
+// ── DETAIL SHEET ──
+function openDetail(id) {
+  const p = allPlaces.find(x => x.id === id);
+  if (!p) return;
+  currentDetailId = id;
+
+  const img = document.getElementById('detail-img');
+  if (p.image) { img.src = p.image; img.style.display = 'block'; }
+  else { img.style.display = 'none'; }
+
+  document.getElementById('detail-name').textContent = p.name;
+  document.getElementById('detail-addr').textContent = p.addr || '';
+  document.getElementById('detail-notes').textContent = p.notes || '';
+
+  const tagsEl = document.getElementById('detail-tags');
+  tagsEl.innerHTML = (p.tags || []).map(t => `<span class="detail-tag">${t}</span>`).join('');
+  if (p.free) tagsEl.innerHTML += `<span class="detail-tag" style="color:var(--been)">free</span>`;
+
+  const linkEl = document.getElementById('detail-link');
+  if (p.link) { linkEl.href = p.link; linkEl.style.opacity = '1'; linkEl.style.pointerEvents = 'auto'; }
+  else { linkEl.removeAttribute('href'); linkEl.style.opacity = '0.3'; linkEl.style.pointerEvents = 'none'; }
+
+  // status buttons
+  document.getElementById('ds-want').className = 'detail-status-btn' + (p.status === 'want' ? ' active-want' : '');
+  document.getElementById('ds-been').className = 'detail-status-btn' + (p.status === 'been' ? ' active-been' : '');
+
+  document.getElementById('detail-edit-btn').style.display = 'block';
+
+  closeAllSheets();
+  document.getElementById('detail-sheet').classList.add('open');
+  document.getElementById('overlay').classList.add('visible');
+}
+
+function detailDirections() {
+  const p = allPlaces.find(x => x.id === currentDetailId);
+  if (!p) return;
+  window.open(`https://maps.google.com/?q=${p.lat},${p.lng}`, '_blank');
+}
+
+function setDetailStatus(status) {
+  const p = allPlaces.find(x => x.id === currentDetailId);
+  if (!p) return;
+  const newStatus = p.status === status ? null : status;
+  p.status = newStatus;
+
+  // persist to firebase if not seed
+  if (!currentDetailId.startsWith('_seed_')) {
+    db.collection('places').doc(currentDetailId).update({ status: newStatus }).catch(console.error);
+  }
+
+  document.getElementById('ds-want').className = 'detail-status-btn' + (newStatus === 'want' ? ' active-want' : '');
+  document.getElementById('ds-been').className = 'detail-status-btn' + (newStatus === 'been' ? ' active-been' : '');
+  renderMarkers();
+}
+
+function editCurrentPlace() {
+  const p = allPlaces.find(x => x.id === currentDetailId);
+  if (!p) return;
+  closeAllSheets();
+
+  document.getElementById('name-input').value  = p.name || '';
+  document.getElementById('lat-input').value   = p.lat || '';
+  document.getElementById('lng-input').value   = p.lng || '';
+  document.getElementById('notes-input').value = p.notes || '';
+  document.getElementById('link-input').value  = p.link || '';
+  document.getElementById('image-input').value = p.image || '';
+  document.getElementById('editing-id').value  = p.id;
+  showCoordsHint(p.lat, p.lng, p.name);
+
+  // status
+  formStatus = p.status || 'want';
+  updateStatusBtns();
+
+  // free
+  isFreeToggled = !!p.free;
+  document.getElementById('free-toggle').className = 'toggle' + (isFreeToggled ? ' on' : '');
+
+  // tags
+  document.querySelectorAll('#form-tags .tag-chip').forEach(chip => {
+    const isSelected = (p.tags || []).map(t => t.toLowerCase()).includes(chip.dataset.tag);
+    chip.classList.toggle('selected', isSelected);
   });
-  window.closeAllSheets();
-};
 
+  document.getElementById('add-sheet-title').textContent = 'Edit Place';
+  document.getElementById('submit-btn').textContent = 'Update Place';
+  document.getElementById('add-sheet').classList.add('open');
+  document.getElementById('overlay').classList.add('visible');
+}
+
+// ── AUTOCOMPLETE ──
+let autocompleteTimer = null;
+let hideTimer = null;
+
+function onNameInput() {
+  clearTimeout(autocompleteTimer);
+  const q = document.getElementById('name-input').value.trim();
+  if (q.length < 3) { document.getElementById('autocomplete-list').innerHTML = ''; return; }
+  autocompleteTimer = setTimeout(() => fetchAutocomplete(q), 300);
+}
+
+async function fetchAutocomplete(q) {
+  const url = `https://api.maptiler.com/geocoding/${encodeURIComponent(q)}.json?key=${MAPTILER_KEY}&limit=5&bbox=-74.3,40.4,-73.6,41.0`;
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
+    const list = document.getElementById('autocomplete-list');
+    list.innerHTML = '';
+    (data.features || []).forEach(f => {
+      const div = document.createElement('div');
+      div.className = 'autocomplete-item';
+      const mainName = f.text || f.place_name.split(',')[0];
+      const sub = f.place_name.replace(f.text + ', ', '');
+      div.innerHTML = `<strong>${mainName}</strong><span>${sub}</span>`;
+      div.addEventListener('mousedown', () => selectAutocomplete(f));
+      list.appendChild(div);
+    });
+  } catch(e) { console.error(e); }
+}
+
+function selectAutocomplete(feature) {
+  const [lng, lat] = feature.center;
+  document.getElementById('name-input').value = feature.text || feature.place_name.split(',')[0];
+  document.getElementById('lat-input').value  = lat;
+  document.getElementById('lng-input').value  = lng;
+  document.getElementById('autocomplete-list').innerHTML = '';
+  showCoordsHint(lat, lng, feature.place_name);
+  map.flyTo({ center: [lng, lat], zoom: 15, duration: 800 });
+}
+
+function scheduleHideAutocomplete() {
+  hideTimer = setTimeout(() => {
+    document.getElementById('autocomplete-list').innerHTML = '';
+  }, 200);
+}
+
+function showCoordsHint(lat, lng, name) {
+  const hint = document.getElementById('coords-hint');
+  const text = document.getElementById('coords-text');
+  text.textContent = `${(+lat).toFixed(5)}, ${(+lng).toFixed(5)}`;
+  hint.style.display = 'block';
+}
+
+// ── STATUS / TAG TOGGLES (form) ──
+function selectStatus(s) {
+  formStatus = s;
+  updateStatusBtns();
+}
+function updateStatusBtns() {
+  document.getElementById('sb-want').className = 'status-btn' + (formStatus === 'want' ? ' active-want' : '');
+  document.getElementById('sb-been').className = 'status-btn' + (formStatus === 'been' ? ' active-been' : '');
+}
+
+function toggleTag(el) { el.classList.toggle('selected'); }
+
+function toggleFree() {
+  isFreeToggled = !isFreeToggled;
+  document.getElementById('free-toggle').className = 'toggle' + (isFreeToggled ? ' on' : '');
+}
+
+// ── SUBMIT ──
+async function submitPlace() {
+  if (!currentUser) { showAuthModal(); return; }
+  const name = document.getElementById('name-input').value.trim();
+  const lat  = parseFloat(document.getElementById('lat-input').value);
+  const lng  = parseFloat(document.getElementById('lng-input').value);
+  const editingId = document.getElementById('editing-id').value;
+
+  if (!name) { alert('Name is required.'); return; }
+  if (isNaN(lat) || isNaN(lng)) { alert('Please select a place from the suggestions so we can pin it.'); return; }
+
+  const selectedTags = Array.from(document.querySelectorAll('#form-tags .tag-chip.selected'))
+    .map(c => c.dataset.tag);
+
+  const docData = {
+    name,
+    lat, lng,
+    tags: selectedTags,
+    free: isFreeToggled,
+    notes: document.getElementById('notes-input').value.trim(),
+    link:  document.getElementById('link-input').value.trim(),
+    image: document.getElementById('image-input').value.trim(),
+    status: formStatus,
+  };
+
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true;
+
+  const isSeed = editingId.startsWith('_seed_');
+
+  try {
+    if (editingId && !isSeed) {
+      await db.collection('places').doc(editingId).update(docData);
+    } else {
+      await db.collection('places').add(docData);
+    }
+    resetForm();
+    closeAllSheets();
+  } catch(e) {
+    alert('Error saving: ' + e.message);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function resetForm() {
+  document.getElementById('name-input').value  = '';
+  document.getElementById('lat-input').value   = '';
+  document.getElementById('lng-input').value   = '';
+  document.getElementById('notes-input').value = '';
+  document.getElementById('link-input').value  = '';
+  document.getElementById('image-input').value = '';
+  document.getElementById('editing-id').value  = '';
+  document.getElementById('coords-hint').style.display = 'none';
+  document.querySelectorAll('#form-tags .tag-chip').forEach(c => c.classList.remove('selected'));
+  isFreeToggled = false;
+  document.getElementById('free-toggle').className = 'toggle';
+  formStatus = 'want';
+  updateStatusBtns();
+}
+
+// ── FIREBASE SYNC ──
 map.on('load', () => {
-  window.db.collection('places').onSnapshot(snap => {
-    const fbPlaces = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  // Start with seed
+  allPlaces = [...seedPlaces];
+  renderMarkers();
+
+  db.collection('places').onSnapshot(snap => {
+    const fbPlaces = snap.docs.map(d => {
+      const v = d.data();
+      return {
+        id: d.id,
+        name: v.name || '',
+        lat:  Number(v.lat),
+        lng:  Number(v.lng),
+        tags: Array.isArray(v.tags) ? v.tags.map(t => t.toLowerCase()) : [],
+        free: !!v.free,
+        notes: v.notes || '',
+        link:  v.link  || '',
+        image: v.image || '',
+        status: v.status || null,
+        addr: v.addr || '',
+      };
+    });
+    // merge: firebase overrides seed
     allPlaces = [...seedPlaces, ...fbPlaces];
     renderMarkers();
   });
