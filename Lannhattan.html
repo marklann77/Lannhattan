@@ -1,16 +1,12 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8" />
   <title>Lannhattan</title>
-<link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="icon-512.png">
-<meta name="theme-color" content="#aadfff">
-
-  <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no" />
-
-  <!-- PWA bits -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
   <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="icon-512.png">
+  <meta name="theme-color" content="#0d0d0d">
   <script>
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => navigator.serviceWorker.register('service-worker.js'));
@@ -21,466 +17,1028 @@
   <link href="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.css" rel="stylesheet" />
   <script src="https://unpkg.com/maplibre-gl@2.4.0/dist/maplibre-gl.js"></script>
 
-  <!-- Firebase (non-module) -->
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics-compat.js"></script>
-<script>
-  const firebaseConfig = {
-    apiKey: "AIzaSyBMpJyjeVafIbPZQC-LeS3AnXrmZ-9abuk",
-    authDomain: "lannhattan-5a604.firebaseapp.com",
-    projectId: "lannhattan-5a604",
-    storageBucket: "lannhattan-5a604.firebasestorage.app",
-    messagingSenderId: "309697476545",
-    appId: "1:309697476545:web:4960a3de453dc8a722e140",
-    measurementId: "G-006EPCCPY0"
-  };
-  firebase.initializeApp(firebaseConfig);
-  firebase.analytics();
-  // Make globals so other scripts always see them
-  window.db = firebase.firestore();
-</script>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <!-- Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-analytics-compat.js"></script>
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyBMpJyjeVafIbPZQC-LeS3AnXrmZ-9abuk",
+      authDomain: "lannhattan-5a604.firebaseapp.com",
+      projectId: "lannhattan-5a604",
+      storageBucket: "lannhattan-5a604.firebasestorage.app",
+      messagingSenderId: "309697476545",
+      appId: "1:309697476545:web:4960a3de453dc8a722e140",
+      measurementId: "G-006EPCCPY0"
+    };
+    firebase.initializeApp(firebaseConfig);
+    firebase.analytics();
+    window.db = firebase.firestore();
+  </script>
 
 <style>
-  body { 
-    margin: 0; 
-    padding: 0; 
-    font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; 
-  }
-  #map { 
-    position: absolute; 
-    top: 0; 
-    bottom: 0; 
-    width: 100%; 
-  }
-
-  /* Sidebar card */
-  #sidebar {
-    position: absolute; 
-    top: 20px; 
-    left: 20px; 
-    width: 240px;
-    background: rgba(0,0,0,0.85); 
-    color: #fff; 
-    padding: 14px; 
-    border-radius: 12px;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.5); 
-    z-index: 2; 
-    backdrop-filter: blur(6px);
-    max-height: calc(100vh - 40px); 
-    overflow: auto;
-  }
-  #sidebar h3 { 
-    margin: 0 0 8px; 
-    font-size: 18px; 
-  }
-  #sidebar label, 
-  #sidebar select, 
-  #sidebar input, 
-  #sidebar textarea, 
-  #sidebar button { 
-    font-size: 14px; 
-  }
-  #sidebar select, 
-  #sidebar input, 
-  #sidebar textarea {
-    width: 100%; 
-    margin: 6px 0; 
-    padding: 6px 8px; 
-    border-radius: 8px; 
-    border: 1px solid rgba(255,255,255,0.2);
-    background: rgba(255,255,255,0.08); 
-    color: #fff; 
-    outline: none;
-  }
-  #sidebar button { 
-    width: 100%; 
-    margin-top: 6px; 
-    padding: 8px; 
-    border: 0; 
-    border-radius: 8px; 
-    cursor: pointer; 
-    background:#3b82f6; 
-    color:#fff; 
-  }
-  #sidebar button:hover { 
-    filter: brightness(1.05); 
-  }
-  #sidebar hr { 
-    border: 0; 
-    height: 1px; 
-    background: rgba(255,255,255,0.15); 
-    margin: 12px 0; 
-  }
-  #sidebar .row { 
-    display: flex; 
-    gap: 8px; 
-  }
-  #sidebar .row > * { 
-    flex: 1; 
+  :root {
+    --bg: #0d0d0d;
+    --surface: #1a1a1a;
+    --surface2: #242424;
+    --border: #2e2e2e;
+    --text: #f0ece4;
+    --text-muted: #7a7570;
+    --accent: #e8c547;
+    --accent2: #4a9eff;
+    --want: #e8c547;
+    --been: #4ade80;
+    --tag-bg: #2a2a2a;
+    --radius: 12px;
+    --font-body: 'DM Sans', sans-serif;
+    --font-mono: 'DM Mono', monospace;
   }
 
-  /* Popup glass */
-  .mapboxgl-popup-content {
-    background: rgba(255,255,255,0.15);
-    backdrop-filter: blur(10px); 
-    -webkit-backdrop-filter: blur(10px);
-    color: white; 
-    border-radius: 12px; 
-    padding: 12px;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.4); 
-    border: 1px solid rgba(255,255,255,0.2);
-  }
-  .popup-content h3 { 
-    margin: 0 0 6px; 
-    font-size: 18px; 
-    font-weight: 700; 
-  }
-  .popup-content p { 
-    margin: 6px 0; 
-  }
-  .popup-content a { 
-    color: #aadfff; 
-    text-decoration: underline; 
-  }
-  .popup-content img {
-    max-width: 100%; 
-    height: auto; 
-    border-radius: 6px; 
-    display: block; 
-    margin-bottom: 8px;
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body, html {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    overflow: hidden;
   }
 
-  /* align all checkboxes neatly */
-  #sidebar .checkbox,
-  #tag-filters label {
+  /* ── MAP ── */
+  #map {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+  }
+
+  /* ── TOP BAR ── */
+  #topbar {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
     display: flex;
     align-items: center;
-    gap: 8px;
-    margin: 6px 0;
-    line-height: 1.2;
+    gap: 10px;
+    padding: 12px 14px;
+    background: linear-gradient(to bottom, rgba(13,13,13,0.95) 0%, rgba(13,13,13,0) 100%);
   }
-  #sidebar input[type="checkbox"] {
+
+  #wordmark {
+    font-family: var(--font-mono);
+    font-size: 17px;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    color: var(--accent);
+    flex-shrink: 0;
+    margin-right: 4px;
+  }
+
+  /* ── FILTER PILLS ── */
+  #filter-scroll {
+    display: flex;
+    gap: 6px;
+    overflow-x: auto;
+    scrollbar-width: none;
+    flex: 1;
+    align-items: center;
+  }
+  #filter-scroll::-webkit-scrollbar { display: none; }
+
+  .pill {
+    flex-shrink: 0;
+    padding: 5px 11px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: rgba(26,26,26,0.85);
+    color: var(--text-muted);
+    font-size: 12px;
+    font-family: var(--font-mono);
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+  }
+  .pill:hover { border-color: var(--accent); color: var(--text); }
+  .pill.active {
+    background: var(--accent);
+    color: #0d0d0d;
+    border-color: var(--accent);
+    font-weight: 500;
+  }
+  .pill.status-pill.want.active  { background: var(--want); color: #0d0d0d; border-color: var(--want); }
+  .pill.status-pill.been.active  { background: var(--been); color: #0d0d0d; border-color: var(--been); }
+
+  /* ── ADD BUTTON ── */
+  #add-btn {
+    position: absolute;
+    bottom: 28px;
+    right: 18px;
+    z-index: 100;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: #0d0d0d;
+    font-size: 26px;
+    font-weight: 400;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 20px rgba(232,197,71,0.4);
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  #add-btn:hover { transform: scale(1.08); box-shadow: 0 6px 28px rgba(232,197,71,0.55); }
+
+  /* ── BOTTOM SHEET (shared) ── */
+  .sheet {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    z-index: 200;
+    background: var(--surface);
+    border-radius: 20px 20px 0 0;
+    padding: 20px 18px 32px;
+    max-height: 85vh;
+    overflow-y: auto;
+    transform: translateY(100%);
+    transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+  .sheet.open { transform: translateY(0); }
+
+  .sheet-handle {
+    width: 36px;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    margin: 0 auto 18px;
+  }
+
+  .sheet-title {
+    font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    margin-bottom: 18px;
+  }
+
+  /* ── OVERLAY ── */
+  #overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 150;
+    background: rgba(0,0,0,0.5);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+  }
+  #overlay.visible { opacity: 1; pointer-events: all; }
+
+  /* ── ADD FORM ── */
+  .search-wrapper {
+    position: relative;
+    margin-bottom: 14px;
+  }
+
+  .search-wrapper input {
+    width: 100%;
+    padding: 13px 14px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 15px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .search-wrapper input:focus { border-color: var(--accent); }
+  .search-wrapper input::placeholder { color: var(--text-muted); }
+
+  #autocomplete-list {
+    position: absolute;
+    top: 100%;
+    left: 0; right: 0;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-top: none;
+    border-radius: 0 0 var(--radius) var(--radius);
+    z-index: 300;
+    max-height: 180px;
+    overflow-y: auto;
+  }
+  .autocomplete-item {
+    padding: 10px 14px;
+    font-size: 14px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--border);
+    line-height: 1.3;
+  }
+  .autocomplete-item:last-child { border-bottom: none; }
+  .autocomplete-item:hover { background: var(--border); }
+  .autocomplete-item strong { display: block; color: var(--text); font-weight: 500; }
+  .autocomplete-item span { color: var(--text-muted); font-size: 12px; }
+
+  .form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .form-input {
+    width: 100%;
+    padding: 11px 13px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .form-input:focus { border-color: var(--accent); }
+  .form-input::placeholder { color: var(--text-muted); }
+
+  .form-label {
+    display: block;
+    font-size: 11px;
+    font-family: var(--font-mono);
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 6px;
+    margin-top: 14px;
+  }
+
+  /* Status selector */
+  .status-select {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  .status-btn {
+    flex: 1;
+    padding: 10px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: center;
+  }
+  .status-btn.active-want { background: rgba(232,197,71,0.15); border-color: var(--want); color: var(--want); }
+  .status-btn.active-been { background: rgba(74,222,128,0.15); border-color: var(--been); color: var(--been); }
+
+  /* Tag chips in form */
+  .tag-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 14px;
+  }
+  .tag-chip {
+    padding: 6px 12px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text-muted);
+    font-size: 12px;
+    font-family: var(--font-mono);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .tag-chip.selected {
+    background: rgba(74,158,255,0.2);
+    border-color: var(--accent2);
+    color: var(--accent2);
+  }
+
+  /* Free toggle */
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 14px;
+    background: var(--surface2);
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    margin-bottom: 14px;
+    cursor: pointer;
+  }
+  .toggle-row span { font-size: 14px; color: var(--text); }
+  .toggle {
+    width: 40px;
+    height: 22px;
+    background: var(--border);
+    border-radius: 11px;
+    position: relative;
+    transition: background 0.2s;
+  }
+  .toggle.on { background: var(--been); }
+  .toggle::after {
+    content: '';
+    position: absolute;
     width: 16px;
     height: 16px;
-    margin: 0;
-    vertical-align: middle;
+    background: white;
+    border-radius: 50%;
+    top: 3px;
+    left: 3px;
+    transition: left 0.2s;
+  }
+  .toggle.on::after { left: 21px; }
+
+  /* Submit btn */
+  .submit-btn {
+    width: 100%;
+    padding: 14px;
+    border-radius: var(--radius);
+    border: none;
+    background: var(--accent);
+    color: #0d0d0d;
+    font-family: var(--font-mono);
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0.05em;
+    cursor: pointer;
+    transition: opacity 0.15s;
+    margin-top: 4px;
+  }
+  .submit-btn:hover { opacity: 0.88; }
+  .submit-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* ── PLACE DETAIL SHEET ── */
+  #detail-img {
+    width: 100%;
+    height: 160px;
+    object-fit: cover;
+    border-radius: var(--radius);
+    margin-bottom: 14px;
+    display: none;
+  }
+  #detail-name {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  #detail-addr {
+    font-size: 13px;
+    color: var(--text-muted);
+    margin-bottom: 12px;
+    font-family: var(--font-mono);
+  }
+  #detail-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+  .detail-tag {
+    padding: 4px 10px;
+    border-radius: 20px;
+    background: var(--tag-bg);
+    color: var(--text-muted);
+    font-size: 11px;
+    font-family: var(--font-mono);
+  }
+  #detail-notes {
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1.6;
+    margin-bottom: 14px;
+  }
+  .detail-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  .detail-btn {
+    padding: 11px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    display: block;
+    transition: border-color 0.15s;
+  }
+  .detail-btn:hover { border-color: var(--accent); }
+  .detail-status-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  .detail-status-btn {
+    flex: 1;
+    padding: 10px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    background: var(--surface2);
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.15s;
+  }
+  .detail-status-btn.active-want { background: rgba(232,197,71,0.15); border-color: var(--want); color: var(--want); }
+  .detail-status-btn.active-been { background: rgba(74,222,128,0.15); border-color: var(--been); color: var(--been); }
+  .detail-edit-btn {
+    width: 100%;
+    padding: 11px;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-muted);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .detail-edit-btn:hover { border-color: var(--accent); color: var(--text); }
+
+  /* ── MARKER COLORS ── */
+  .marker-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 2px solid rgba(0,0,0,0.5);
+    cursor: pointer;
+    transition: transform 0.15s;
+  }
+  .marker-dot:hover { transform: scale(1.4); }
+  .marker-dot.want  { background: var(--want); box-shadow: 0 0 6px rgba(232,197,71,0.6); }
+  .marker-dot.been  { background: var(--been); box-shadow: 0 0 6px rgba(74,222,128,0.6); }
+  .marker-dot.unset { background: var(--accent2); box-shadow: 0 0 6px rgba(74,158,255,0.5); }
+
+  /* ── LEGEND ── */
+  #legend {
+    position: absolute;
+    bottom: 92px;
+    right: 18px;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    background: rgba(26,26,26,0.85);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px 12px;
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 11px;
+    font-family: var(--font-mono);
+    color: var(--text-muted);
+  }
+  .legend-dot {
+    width: 8px; height: 8px; border-radius: 50%;
   }
 
-  /* Mobile: top bar layout */
-  @media (max-width: 600px) {
-    #sidebar {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;         /* full width */
-      max-height: 40%;     /* sidebar height limit */
-      overflow-y: auto;    /* scroll if content is taller */
-      font-size: 14px;
-      padding: 10px;
-      border-radius: 0;    /* flat edges for full-width bar */
-    }
-    #map {
-      position: absolute;
-      top: 40%;           /* start map below sidebar */
-      bottom: 0;
-      width: 100%;
-    }
+  /* ── MAPLIBRE POPUP RESET ── */
+  .maplibregl-popup-content {
+    display: none !important;
+  }
+
+  /* ScrollBar */
+  .sheet::-webkit-scrollbar { width: 4px; }
+  .sheet::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  /* ── COORDS HINT ── */
+  #coords-hint {
+    font-size: 11px;
+    font-family: var(--font-mono);
+    color: var(--text-muted);
+    padding: 8px 12px;
+    background: var(--surface2);
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    margin-bottom: 12px;
   }
 </style>
-
 </head>
 <body>
 
-  <!-- Sidebar -->
-  <div id="sidebar">
-    <h3>Filter</h3>
-    <label for="day-select" class="section-label">Day</label>
-    <select id="day-select" onchange="filterMarkers()">
-      <option value="all">All Days</option>
-      <option>Monday</option><option>Tuesday</option><option>Wednesday</option>
-      <option>Thursday</option><option>Friday</option><option>Saturday</option><option>Sunday</option>
-    </select>
-    <label style="display:flex;gap:8px;align-items:center;margin:6px 0;">
-    </label>
-
-   <label class="checkbox"><input type="checkbox" id="free-toggle" onchange="filterMarkers()"> Only Free</label><br>
-    
-    <label class="section-label">Tags</label><br>
-    <div id="tag-filters" style="line-height:1.6"><br>
-      <label><input type="checkbox" value="art and culture" onchange="filterMarkers()"> Arts & Culture</label><br>
-      <label><input type="checkbox" value="nature" onchange="filterMarkers()"> Nature</label><br>
-      <label><input type="checkbox" value="nightlife" onchange="filterMarkers()"> Nightlife</label><br>
-      <label><input type="checkbox" value="food" onchange="filterMarkers()"> Food</label><br>
-      <label><input type="checkbox" value="shopping" onchange="filterMarkers()"> Shopping</label><br>
-      <label><input type="checkbox" value="views" onchange="filterMarkers()"> Views</label><br>
-      <label><input type="checkbox" value="miscellaneous" onchange="filterMarkers()"> Miscellaneous</label><br>
-      <label><input type="checkbox" value="exercise" onchange="filterMarkers()"> Exercise</label><br>
-      <label><input type="checkbox" value="coffee" onchange="filterMarkers()"> Coffee & WFH</label><br>
-    </div>
-
-    <hr>
-
-    <h3>Add New Place</h3>
-    <input type="text" id="name-input" placeholder="Name" />
-    <div class="row">
-      <input type="text" id="lat-input" placeholder="Lat" />
-      <input type="text" id="lng-input" placeholder="Lng" />
-      <input type="text" id="addr-input" placeholder="Address (optional if Lat/Lng provided)" />
-    </div>
-    <input type="text" id="link-input" placeholder="Website URL (optional)" />
-    <input type="text" id="image-input" placeholder="Image URL (optional)" />
-    <input type="text" id="day-input" placeholder="Day (e.g. Saturday)" />
-    <input type="text" id="tags-input" placeholder="Tags (comma-separated)" />
-    <input type="text" id="notes-input" placeholder="Notes (optional)" />
-    <label style="display:flex;gap:8px;align-items:center;">
-      <input type="checkbox" id="free-input" /> Free
-    </label>
-    <script>
-      
-// MapTiler Geocoding (needs your same API key)
-async function geocodeAddress(q) {
-  const url = `https://api.maptiler.com/geocoding/${encodeURIComponent(q)}.json?key=qiFcY9lvHhTSrubUMX2y&limit=1`;
-  const resp = await fetch(url);
-  if (!resp.ok) throw new Error("Geocoding request failed");
-  const data = await resp.json();
-  if (!data.features || !data.features.length) throw new Error("No results for that address");
-  const [lng, lat] = data.features[0].center;
-  return { lat, lng };
-}
-</script>
-
-    <button id="submit-btn" onclick="submitPlace()">Add Place</button>
-  </div>
-
+  <!-- Map -->
   <div id="map"></div>
 
-  <script>
-    // Map
-    const map = new maplibregl.Map({
-      container: 'map',
-      style: 'https://api.maptiler.com/maps/darkmatter/style.json?key=qiFcY9lvHhTSrubUMX2y',
-      center: [-74.0060, 40.7128],
-      zoom: 11
-    });
-    map.dragRotate.enable();
-    map.touchZoomRotate.enableRotation();
-
-    // Seed local items
-    const projects = [
-
-      { name: "GrowNYC Teaching Garden", coords: [-74.0167, 40.6872],
-        image: "https://www.grownyc.org/files/imagecache/photo_full/gi_tg_plants.jpg",
-        link: "https://www.grownyc.org/teachinggarden", free: true, borough: "Manhattan",
-        category: "Food", day: "Saturday", tags: ["garden", "education"], notes: "" },
-      { name: "New York Public Library (Bryant Park)", coords: [-73.9819, 40.7532],
-        image: "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/14/21/75/2c/new-york-public-library.jpg?w=900&h=500&s=1",
-        link: "https://www.nypl.org/locations/snfl", free: true, borough: "Manhattan",
-        category: "Arts", day: "All Days", tags: ["library", "study"], notes: "" },
-      { name: "St. Patrick’s Cathedral", coords: [-73.9759, 40.7585],
-        image: "https://upload.wikimedia.org/wikipedia/commons/3/35/St_Patrick%27s_Cathedral_-_New_York_City.jpg",
-        link: "https://saintpatrickscathedral.org", free: true, borough: "Manhattan",
-        category: "Arts", day: "All Days", tags: [], notes: "" },
-      { name: "Little Italy", coords: [-73.9973, 40.7191],
-        image: "https://upload.wikimedia.org/wikipedia/commons/f/f5/Little_Italy_-_New_York_City.jpg",
-        link: "https://www.nycgo.com/boroughs-neighborhoods/manhattan/little-italy",
-        free: true, borough: "Manhattan", category: "Food", day: "All Days", tags: [], notes: "" },
-      { name: "Chinatown", coords: [-73.9967, 40.7158],
-        image: "https://upload.wikimedia.org/wikipedia/commons/8/89/Chinatown_NYC.jpg",
-        link: "https://www.nycgo.com/boroughs-neighborhoods/manhattan/chinatown",
-        free: true, borough: "Manhattan", category: "Food", day: "All Days", tags: [], notes: "" },
-      { name: "Avra Madison Estiatorio", coords: [-73.9728, 40.7639],
-        image: "https://media-cdn.tripadvisor.com/media/photo-s/1c/d6/31/98/photo3jpg.jpg",
-        link: "https://theavragroup.com/avra-madison/", free: false, borough: "Manhattan",
-        category: "Food", day: "All Days", tags: [], notes: "" },
-      { name: "Empire State Building", coords: [-73.9857, 40.7484],
-        image: "https://upload.wikimedia.org/wikipedia/commons/0/08/Empire_State_Building_by_David_Shankbone_crop.jpg",
-        link: "https://www.esbnyc.com", free: false, borough: "Manhattan",
-        category: "Arts", day: "All Days", tags: [], notes: "" },
-      { name: "Museum of Modern Art (MoMA)", coords: [-73.9776, 40.7614],
-        image: "https://upload.wikimedia.org/wikipedia/commons/d/d0/Museum_of_Modern_Art_%28New_York%29_2015.jpg",
-        link: "https://www.moma.org", free: false, borough: "Manhattan",
-        category: "Arts", day: "All Days", tags: [], notes: "" },
-      { name: "Solomon R. Guggenheim Museum", coords: [-73.9590, 40.7830],
-        image: "https://upload.wikimedia.org/wikipedia/commons/8/84/Guggenheim_Museum_Exterior.jpg",
-        link: "https://www.guggenheim.org", free: false, borough: "Manhattan",
-        category: "Arts", day: "All Days", tags: [], notes: "" },
-      { name: "International Center of Photography", coords: [-73.9877, 40.7188],
-        image: "https://www.icp.org/sites/default/files/styles/responsive_large/public/ICP_Bowery.jpg",
-        link: "https://www.icp.org", free: false, borough: "Manhattan",
-        category: "Arts", day: "All Days", tags: [], notes: "" },
-      { name: "Fotografiska New York", coords: [-73.9845, 40.7416],
-        image: "https://upload.wikimedia.org/wikipedia/commons/f/f2/Fotografiska_NY.jpg",
-        link: "https://www.fotografiska.com/nyc/", free: false, borough: "Manhattan",
-        category: "Arts", day: "All Days", tags: [], notes: "" },
-      { name: "TWA Hotel Skating Rink", coords: [-73.7846, 40.6437],
-        image: "https://www.twahotel.com/sites/default/files/styles/hero_desktop/public/2022-11/hero-ice-rink-2.jpg",
-        link: "https://www.twahotel.com/ice-rink", free: false, borough: "Queens",
-        category: "Active", day: "All Days", tags: [], notes: "" }
-    ];
-
-    // Firebase-backed + local
-    let firebasePlaces = [];
-    let markers = [];
-
-    function renderMarkers(data) {
-      markers.forEach(m => m.remove());
-      markers = [];
-
-      data.forEach(p => {
-       const isFirestore = !!p.id;
-const tagsHTML = Array.isArray(p.tags) && p.tags.length ? `<p><strong>Tags:</strong> ${p.tags.join(', ')}</p>` : '';
-const notesHTML = (typeof p.notes === 'string' && p.notes.trim()) ? `<p>${p.notes}</p>` : '';
-const imgHTML = p.image ? `<img src="${p.image}" alt="${p.name}">` : '';
-const linkHTML = p.link ? `<a href="${p.link}" target="_blank">More info</a>` : '';
-const editHTML = isFirestore ? `<button onclick="startEdit('${p.id}')" style="margin-top:8px;width:100%;padding:6px;border:0;border-radius:8px;background:#10b981;color:#fff;cursor:pointer;">Edit</button>` : '';
-
-const popupHTML = `
-  <div class="popup-content">
-    <h3>${p.name}</h3>
-    ${imgHTML}
-    ${tagsHTML}
-    ${notesHTML}
-    ${linkHTML}
-    ${editHTML}
+  <!-- Top bar -->
+  <div id="topbar">
+    <div id="wordmark">LANNHATTAN</div>
+    <div id="filter-scroll">
+      <!-- status filters -->
+      <div class="pill status-pill want" data-filter="want" onclick="toggleFilter(this)">🔖 Want to go</div>
+      <div class="pill status-pill been" data-filter="been" onclick="toggleFilter(this)">✅ Been</div>
+      <div class="pill" data-filter="free" onclick="toggleFilter(this)">Free</div>
+      <!-- tag filters -->
+      <div class="pill" data-filter="tag:arts" onclick="toggleFilter(this)">Arts</div>
+      <div class="pill" data-filter="tag:nature" onclick="toggleFilter(this)">Nature</div>
+      <div class="pill" data-filter="tag:food" onclick="toggleFilter(this)">Food</div>
+      <div class="pill" data-filter="tag:nightlife" onclick="toggleFilter(this)">Nightlife</div>
+      <div class="pill" data-filter="tag:coffee" onclick="toggleFilter(this)">Coffee</div>
+      <div class="pill" data-filter="tag:views" onclick="toggleFilter(this)">Views</div>
+      <div class="pill" data-filter="tag:shopping" onclick="toggleFilter(this)">Shopping</div>
+      <div class="pill" data-filter="tag:exercise" onclick="toggleFilter(this)">Exercise</div>
+    </div>
   </div>
-`;
 
-        const lngLat = Array.isArray(p.coords) ? p.coords : [p.lng, p.lat];
+  <!-- Legend -->
+  <div id="legend">
+    <div class="legend-item"><div class="legend-dot" style="background:var(--accent2)"></div>Unvisited</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--want)"></div>Want to go</div>
+    <div class="legend-item"><div class="legend-dot" style="background:var(--been)"></div>Been here</div>
+  </div>
 
-        const marker = new maplibregl.Marker()
-          .setLngLat(lngLat)
-          .setPopup(new maplibregl.Popup({ offset: 25 }).setHTML(popupHTML))
-          .addTo(map);
+  <!-- Add button -->
+  <button id="add-btn" onclick="openAddSheet()">+</button>
 
-        markers.push(marker);
-      });
-    }
+  <!-- Overlay -->
+  <div id="overlay" onclick="closeAllSheets()"></div>
 
-    function filterMarkers() {
-      const daySel = (document.getElementById('day-select')?.value || 'all').toLowerCase();
-      const onlyFree = document.getElementById('free-toggle')?.checked || false;
+  <!-- ── ADD SHEET ── -->
+  <div class="sheet" id="add-sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title" id="add-sheet-title">Add a Place</div>
 
-      const tagInputs = document.querySelectorAll('#tag-filters input[type="checkbox"]:checked');
-      const selectedTags = Array.from(tagInputs).map(i => i.value.toLowerCase());
+    <!-- Name with autocomplete -->
+    <div class="search-wrapper">
+      <input type="text" id="name-input" placeholder="Search for a place…" autocomplete="off"
+        oninput="onNameInput()" onblur="scheduleHideAutocomplete()" />
+      <div id="autocomplete-list"></div>
+    </div>
 
-      const all = [...projects, ...firebasePlaces];
+    <!-- Coords hint (shown after geocode) -->
+    <div id="coords-hint" style="display:none">📍 <span id="coords-text"></span></div>
 
-      const filtered = all.filter(p => {
-        const day = (p.day || 'All Days').toLowerCase();
-        const dayMatch = (daySel === 'all') || (day === daySel);
-        const freeMatch = !onlyFree || !!p.free;
-        const tagArr = Array.isArray(p.tags) ? p.tags.map(t => t.toLowerCase()) : [];
-        const tagMatch = selectedTags.length === 0 || selectedTags.every(t => tagArr.includes(t));
-        return dayMatch && freeMatch && tagMatch;
-      });
+    <!-- Status -->
+    <div class="form-label">Status</div>
+    <div class="status-select">
+      <div class="status-btn active-want" id="sb-want" onclick="selectStatus('want')">🔖 Want to go</div>
+      <div class="status-btn" id="sb-been" onclick="selectStatus('been')">✅ Been here</div>
+    </div>
 
-      renderMarkers(filtered);
-    }
-    window.filterMarkers = filterMarkers;
+    <!-- Tags -->
+    <div class="form-label">Tags</div>
+    <div class="tag-chips" id="form-tags">
+      <div class="tag-chip" data-tag="arts" onclick="toggleTag(this)">Arts</div>
+      <div class="tag-chip" data-tag="nature" onclick="toggleTag(this)">Nature</div>
+      <div class="tag-chip" data-tag="food" onclick="toggleTag(this)">Food</div>
+      <div class="tag-chip" data-tag="nightlife" onclick="toggleTag(this)">Nightlife</div>
+      <div class="tag-chip" data-tag="coffee" onclick="toggleTag(this)">Coffee</div>
+      <div class="tag-chip" data-tag="views" onclick="toggleTag(this)">Views</div>
+      <div class="tag-chip" data-tag="shopping" onclick="toggleTag(this)">Shopping</div>
+      <div class="tag-chip" data-tag="exercise" onclick="toggleTag(this)">Exercise</div>
+    </div>
 
-    let editingId = null;
+    <!-- Free toggle -->
+    <div class="toggle-row" onclick="toggleFree()">
+      <span>Free / No cover</span>
+      <div class="toggle" id="free-toggle"></div>
+    </div>
 
-window.startEdit = function(id) {
-  const p = firebasePlaces.find(x => x.id === id);
-  if (!p) return alert('Could not load item to edit.');
+    <!-- Notes -->
+    <div class="form-label">Notes (optional)</div>
+    <textarea class="form-input" id="notes-input" rows="2" placeholder="Hours, tips, vibes…" style="resize:none;margin-bottom:14px;"></textarea>
 
-  document.getElementById("name-input").value  = p.name || "";
-  document.getElementById("link-input").value  = p.link || "";
-  document.getElementById("image-input").value = p.image || "";
-  document.getElementById("day-input").value   = p.day || "All Days";
-  document.getElementById("tags-input").value  = (Array.isArray(p.tags) ? p.tags.join(", ") : "");
-  document.getElementById("notes-input").value = p.notes || "";
-  document.getElementById("lat-input").value   = String(p.lat ?? "");
-  document.getElementById("lng-input").value   = String(p.lng ?? "");
-  if (document.getElementById("addr-input")) document.getElementById("addr-input").value = "";
-  document.getElementById("free-input").checked = !!p.free;
+    <!-- Website -->
+    <div class="form-label">Website (optional)</div>
+    <input type="url" class="form-input" id="link-input" placeholder="https://…" style="margin-bottom:14px;" />
 
-  editingId = id;
-  const btn = document.getElementById('submit-btn');
-  if (btn) btn.textContent = 'Update Place';
-};
+    <button class="submit-btn" id="submit-btn" onclick="submitPlace()">Save Place</button>
 
-    // Realtime Firestore subscription
-    map.on('load', () => {
-      renderMarkers(projects); // show locals first
-      db.collection('places').onSnapshot(snap => {
-  firebasePlaces = snap.docs.map(d => {
-    const v = d.data();
-    return {
-      id: d.id,
-      name: v.name,
-      link: v.link || '',
-      day: v.day || 'All Days',
-      tags: Array.isArray(v.tags) ? v.tags : [],
-      notes: v.notes || '',
-      free: !!v.free,
-      image: v.image || '',
-      lat: Number(v.lat),
-      lng: Number(v.lng),
-      coords: [Number(v.lng), Number(v.lat)]
-    };
-  });
-  filterMarkers();
+    <!-- Hidden inputs for coords -->
+    <input type="hidden" id="lat-input" />
+    <input type="hidden" id="lng-input" />
+    <input type="hidden" id="editing-id" />
+  </div>
+
+  <!-- ── DETAIL SHEET ── -->
+  <div class="sheet" id="detail-sheet">
+    <div class="sheet-handle"></div>
+    <img id="detail-img" src="" alt="" />
+    <div id="detail-name"></div>
+    <div id="detail-addr"></div>
+    <div id="detail-tags"></div>
+    <div id="detail-notes"></div>
+    <div class="detail-status-row">
+      <div class="detail-status-btn" id="ds-want" onclick="setDetailStatus('want')">🔖 Want to go</div>
+      <div class="detail-status-btn" id="ds-been" onclick="setDetailStatus('been')">✅ Been here</div>
+    </div>
+    <div class="detail-actions">
+      <a id="detail-link" class="detail-btn" target="_blank">🔗 More info</a>
+      <div class="detail-btn" onclick="detailDirections()">🗺 Directions</div>
+    </div>
+    <button class="detail-edit-btn" id="detail-edit-btn" onclick="editCurrentPlace()">Edit this place</button>
+  </div>
+
+<script>
+// ── STATE ──
+let activeFilters = new Set();
+let formStatus = 'want';
+let isFreeToggled = false;
+let allPlaces = [];
+let markers = [];
+let currentDetailId = null;
+
+const MAPTILER_KEY = 'qiFcY9lvHhTSrubUMX2y';
+
+// ── MAP ──
+const map = new maplibregl.Map({
+  container: 'map',
+  style: `https://api.maptiler.com/maps/darkmatter/style.json?key=${MAPTILER_KEY}`,
+  center: [-73.9857, 40.7484],
+  zoom: 11.5
 });
+map.dragRotate.enable();
+map.touchZoomRotate.enableRotation();
+map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-left');
 
-    });
+// ── SEED DATA (tags normalized to match filter pills) ──
+const seedPlaces = [
+  { id: '_seed_0', name: "GrowNYC Teaching Garden", lat: 40.6872, lng: -74.0167,
+    image: "https://www.grownyc.org/files/imagecache/photo_full/gi_tg_plants.jpg",
+    link: "https://www.grownyc.org/teachinggarden", free: true,
+    tags: ["nature","food"], notes: "Open Saturdays.", status: null },
+  { id: '_seed_1', name: "NY Public Library (Bryant Park)", lat: 40.7532, lng: -73.9819,
+    image: "https://dynamic-media-cdn.tripadvisor.com/media/photo-o/14/21/75/2c/new-york-public-library.jpg?w=900&h=500&s=1",
+    link: "https://www.nypl.org/locations/snfl", free: true,
+    tags: ["arts"], notes: "", status: null },
+  { id: '_seed_2', name: "St. Patrick's Cathedral", lat: 40.7585, lng: -73.9759,
+    image: "https://upload.wikimedia.org/wikipedia/commons/3/35/St_Patrick%27s_Cathedral_-_New_York_City.jpg",
+    link: "https://saintpatrickscathedral.org", free: true,
+    tags: ["arts"], notes: "", status: null },
+  { id: '_seed_3', name: "Chinatown", lat: 40.7158, lng: -73.9967,
+    image: "https://upload.wikimedia.org/wikipedia/commons/8/89/Chinatown_NYC.jpg",
+    link: "https://www.nycgo.com/boroughs-neighborhoods/manhattan/chinatown",
+    free: true, tags: ["food"], notes: "", status: null },
+  { id: '_seed_4', name: "Avra Madison Estiatorio", lat: 40.7639, lng: -73.9728,
+    image: "https://media-cdn.tripadvisor.com/media/photo-s/1c/d6/31/98/photo3jpg.jpg",
+    link: "https://theavragroup.com/avra-madison/", free: false,
+    tags: ["food"], notes: "", status: null },
+  { id: '_seed_5', name: "Empire State Building", lat: 40.7484, lng: -73.9857,
+    image: "https://upload.wikimedia.org/wikipedia/commons/0/08/Empire_State_Building_by_David_Shankbone_crop.jpg",
+    link: "https://www.esbnyc.com", free: false,
+    tags: ["views","arts"], notes: "", status: null },
+  { id: '_seed_6', name: "Museum of Modern Art (MoMA)", lat: 40.7614, lng: -73.9776,
+    image: "https://upload.wikimedia.org/wikipedia/commons/d/d0/Museum_of_Modern_Art_%28New_York%29_2015.jpg",
+    link: "https://www.moma.org", free: false,
+    tags: ["arts"], notes: "", status: null },
+  { id: '_seed_7', name: "Guggenheim Museum", lat: 40.7830, lng: -73.9590,
+    image: "https://upload.wikimedia.org/wikipedia/commons/8/84/Guggenheim_Museum_Exterior.jpg",
+    link: "https://www.guggenheim.org", free: false,
+    tags: ["arts"], notes: "", status: null },
+  { id: '_seed_8', name: "International Center of Photography", lat: 40.7188, lng: -73.9877,
+    image: "https://www.icp.org/sites/default/files/styles/responsive_large/public/ICP_Bowery.jpg",
+    link: "https://www.icp.org", free: false,
+    tags: ["arts"], notes: "", status: null },
+  { id: '_seed_9', name: "Fotografiska New York", lat: 40.7416, lng: -73.9845,
+    image: "https://upload.wikimedia.org/wikipedia/commons/f/f2/Fotografiska_NY.jpg",
+    link: "https://www.fotografiska.com/nyc/", free: false,
+    tags: ["arts"], notes: "", status: null },
+  { id: '_seed_10', name: "TWA Hotel Skating Rink", lat: 40.6437, lng: -73.7846,
+    image: "https://www.twahotel.com/sites/default/files/styles/hero_desktop/public/2022-11/hero-ice-rink-2.jpg",
+    link: "https://www.twahotel.com/ice-rink", free: false,
+    tags: ["exercise"], notes: "", status: null },
+];
 
-    // Add to Firestore
-async function submitPlace() {
-  const name = document.getElementById("name-input").value.trim();
-  const link = document.getElementById("link-input").value.trim();
-  const image = document.getElementById("image-input").value.trim();
-  const day = (document.getElementById("day-input").value.trim()) || 'All Days';
-  const tags = document.getElementById("tags-input").value.split(',').map(t => t.trim()).filter(Boolean);
-  const notes = document.getElementById("notes-input").value.trim();
-  const latVal = document.getElementById("lat-input").value.trim();
-  const lngVal = document.getElementById("lng-input").value.trim();
-  const free = document.getElementById("free-input").checked;
-  const addr = document.getElementById("addr-input") ? document.getElementById("addr-input").value.trim() : "";
-
-  let lat = parseFloat(latVal);
-  let lng = parseFloat(lngVal);
-
-  // If no coords but address provided, geocode (see part D)
-  if ((isNaN(lat) || isNaN(lng)) && addr) {
-    const geo = await geocodeAddress(addr); // will throw on failure
-    lat = geo.lat;
-    lng = geo.lng;
+// ── FILTER LOGIC ──
+function toggleFilter(el) {
+  const f = el.dataset.filter;
+  if (activeFilters.has(f)) {
+    activeFilters.delete(f);
+    el.classList.remove('active');
+  } else {
+    activeFilters.add(f);
+    el.classList.add('active');
   }
-
-  if (!name || isNaN(lat) || isNaN(lng)) {
-    alert("Name + valid coordinates (or geocodable address) required.");
-    return;
-  }
-
-  const docData = { name, link, image, day, tags, notes, lat, lng, free };
-
-  const op = editingId
-  ? db.collection("places").doc(editingId).update(docData)
-  : db.collection("places").add(docData);
-
-op.then(() => {
-  if (editingId) {
-    editingId = null;
-    const btn = document.getElementById('submit-btn');
-    if (btn) btn.textContent = 'Add Place';
-  }
-
-    // realtime snapshot will render it; clear fields
-    document.getElementById("name-input").value = "";
-    document.getElementById("link-input").value = "";
-    document.getElementById("image-input").value = "";
-    document.getElementById("day-input").value = "";
-    document.getElementById("tags-input").value = "";
-    document.getElementById("notes-input").value = "";
-    document.getElementById("lat-input").value = "";
-    document.getElementById("lng-input").value = "";
-    if (document.getElementById("addr-input")) document.getElementById("addr-input").value = "";
-    document.getElementById("free-input").checked = false;
-  }).catch(err => alert("Error saving to Firebase: " + err.message));
+  renderMarkers();
 }
-</script>
 
+function placeMatchesFilters(p) {
+  for (const f of activeFilters) {
+    if (f === 'want' && p.status !== 'want') return false;
+    if (f === 'been' && p.status !== 'been') return false;
+    if (f === 'free' && !p.free) return false;
+    if (f.startsWith('tag:')) {
+      const tag = f.slice(4);
+      const tags = (p.tags || []).map(t => t.toLowerCase());
+      if (!tags.includes(tag)) return false;
+    }
+  }
+  return true;
+}
+
+// ── RENDER MARKERS ──
+function renderMarkers() {
+  markers.forEach(m => m.el && m.el.remove());
+  markers = [];
+
+  const filtered = allPlaces.filter(placeMatchesFilters);
+
+  filtered.forEach(p => {
+    const el = document.createElement('div');
+    el.className = `marker-dot ${p.status || 'unset'}`;
+    el.addEventListener('click', () => openDetail(p.id));
+
+    const m = new maplibregl.Marker({ element: el })
+      .setLngLat([p.lng, p.lat])
+      .addTo(map);
+    m.el = el;
+    markers.push(m);
+  });
+}
+
+// ── OPEN / CLOSE SHEETS ──
+function openAddSheet(prefill) {
+  closeAllSheets();
+  if (prefill) {
+    document.getElementById('name-input').value = prefill.name || '';
+    document.getElementById('lat-input').value  = prefill.lat  || '';
+    document.getElementById('lng-input').value  = prefill.lng  || '';
+    if (prefill.lat && prefill.lng) {
+      showCoordsHint(prefill.lat, prefill.lng, prefill.name);
+    }
+  }
+  document.getElementById('add-sheet-title').textContent = 'Add a Place';
+  document.getElementById('editing-id').value = '';
+  document.getElementById('submit-btn').textContent = 'Save Place';
+  document.getElementById('add-sheet').classList.add('open');
+  document.getElementById('overlay').classList.add('visible');
+}
+
+function closeAllSheets() {
+  document.querySelectorAll('.sheet').forEach(s => s.classList.remove('open'));
+  document.getElementById('overlay').classList.remove('visible');
+  document.getElementById('autocomplete-list').innerHTML = '';
+}
+
+// ── DETAIL SHEET ──
+function openDetail(id) {
+  const p = allPlaces.find(x => x.id === id);
+  if (!p) return;
+  currentDetailId = id;
+
+  const img = document.getElementById('detail-img');
+  if (p.image) { img.src = p.image; img.style.display = 'block'; }
+  else { img.style.display = 'none'; }
+
+  document.getElementById('detail-name').textContent = p.name;
+  document.getElementById('detail-addr').textContent = p.addr || '';
+  document.getElementById('detail-notes').textContent = p.notes || '';
+
+  const tagsEl = document.getElementById('detail-tags');
+  tagsEl.innerHTML = (p.tags || []).map(t => `<span class="detail-tag">${t}</span>`).join('');
+  if (p.free) tagsEl.innerHTML += `<span class="detail-tag" style="color:var(--been)">free</span>`;
+
+  const linkEl = document.getElementById('detail-link');
+  if (p.link) { linkEl.href = p.link; linkEl.style.opacity = '1'; linkEl.style.pointerEvents = 'auto'; }
+  else { linkEl.removeAttribute('href'); linkEl.style.opacity = '0.3'; linkEl.style.pointerEvents = 'none'; }
+
+  // status buttons
+  document.getElementById('ds-want').className = 'detail-status-btn' + (p.status === 'want' ? ' active-want' : '');
+  document.getElementById('ds-been').className = 'detail-status-btn' + (p.status === 'been' ? ' active-been' : '');
+
+  // show edit only for firebase places
+  document.getElementById('detail-edit-btn').style.display = id.startsWith('_seed_') ? 'none' : 'block';
+
+  closeAllSheets();
+  document.getElementById('detail-sheet').classList.add('open');
+  document.getElementById('overlay').classList.add('visible');
+}
+
+function detailDirections() {
+  const p = allPlaces.find(x => x.id === currentDetailId);
+  if (!p) return;
+  window.open(`https://maps.google.com/?q=${p.lat},${p.lng}`, '_blank');
+}
+
+function setDetailStatus(status) {
+  const p = allPlaces.find(x => x.id === currentDetailId);
+  if (!p) return;
+  const newStatus = p.status === status ? null : status;
+  p.status = newStatus;
+
+  // persist to firebase if not seed
+  if (!currentDetailId.startsWith('_seed_')) {
+    db.collection('places').doc(currentDetailId).update({ status: newStatus }).catch(console.error);
+  }
+
+  document.getElementById('ds-want').className = 'detail-status-btn' + (newStatus === 'want' ? ' active-want' : '');
+  document.getElementById('ds-been').className = 'detail-status-btn' + (newStatus === 'been' ? ' active-been' : '');
+  renderMarkers();
+}
+
+function editCurrentPlace() {
+  const p = allPlaces.find(x => x.id === currentDetailId);
+  if (!p) return;
+  closeAllSheets();
+
+  document.getElementById('name-input').value  = p.name || '';
+  document.getElementById('lat-input').value   = p.lat || '';
+  document.getElementById('lng-input').value   = p.lng || '';
+  document.getElementById('notes-input').value = p.notes || '';
+  document.getElementById('link-input').value  = p.link || '';
+  document.getElementById('editing-id').value  = p.id;
+  showCoordsHint(p.lat, p.lng, p.name);
+
+  // status
+  formStatus = p.status || 'want';
+  updateStatusBtns();
+
+  // free
+  isFreeToggled = !!p.free;
+  document.getElementById('free-toggle').className = 'toggle' + (isFreeToggled ? ' on' : '');
+
+  // tags
+  document.querySelectorAll('#form-tags .tag-chip').forEach(chip => {
+    const isSelected = (p.tags || []).map(t => t.toLowerCase()).includes(chip.dataset.tag);
+    chip.classList.toggle('selected', isSelected);
+  });
+
+  document.getElementById('add-sheet-title').textContent = 'Edit Place';
+  document.getElementById('submit-btn').textContent = 'Update Place';
+  document.getElementById('add-sheet').classList.add('open');
+  document.getElementById('overlay').classList.add('visible');
+}
+
+// ── AUTOCOMPLETE ──
+let autocompleteTimer = null;
+let hideTimer = null;
+
+function onNameInput() {
+  clearTimeout(autocompleteTimer);
+  const q = document.getElementById('name-input').value.trim();
+  if (q.length < 3) { document.getElementById('autocomplete-list').innerHTML = ''; return; }
+  autocompleteTimer = setTimeout(() => fetchAutocomplete(q), 300);
+}
+
+async function fetchAutocomplete(q) {
+  const url = `https://api.maptiler.com/geocoding/${encodeURIComponent(q)}.json?key=${MAPTILER_KEY}&limit=5&bbox=-74.3,40.4,-73.6,41.0`;
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
+    const list = document.getElementById('autocomplete-list');
+    list.innerHTML = '';
+    (data.features || []).forEach(f => {
+      const div = document.createElement('div');
+      div.className = 'autocomplete-item';
+      const mainName = f.text || f.place_name.split(',')[0];
+      const sub = f.place_name.replace(f.text + ', ', '');
+      div.innerHTML = `<strong>${mainName}</strong><span>${sub}</span>`;
+      div.addEventListener('mousedown', () => selectAutocomplete(f));
+      list.appendChild(div);
+    });
+  } catch(e) { console.error(e); }
+}
+
+function selectAutocomplete(feature) {
+  const [lng, lat] = feature.center;
+  document.getElementById('name-input').value = feature.text || feature.place_name.split(',')[0];
+  document.getElementById('lat-input').value  = lat;
+  document.getElementById('lng-input').value  = lng;
+  document.getElementById('autocomplete-list').innerHTML = '';
+  showCoordsHint(lat, lng, feature.place_name);
+  map.flyTo({ center: [lng, lat], zoom: 15, duration: 800 });
+}
+
+function scheduleHideAutocomplete() {
+  hideTimer = setTimeout(() => {
+    document.getElementById('autocomplete-list').innerHTML = '';
+  }, 200);
+}
+
+function showCoordsHint(lat, lng, name) {
+  const hint = document.getElementById('coords-hint');
+  const text = document.getElementById('coords-text');
+  text.textContent = `${(+lat).toFixed(5)}, ${(+lng).toFixed(5)}`;
+  hint.style.display = 'block';
+}
+
+// ── STATUS / TAG TOGGLES (form) ──
+function selectStatus(s) {
+  formStatus = s;
+  updateStatusBtns();
+}
+function updateStatusBtns() {
+  document.getElementById('sb-want').className = 'status-btn' + (formStatus === 'want' ? ' active-want' : '');
+  document.getElementById('sb-been').className = 'status-btn' + (formStatus === 'been' ? ' active-been' : '');
+}
+
+function toggleTag(el) { el.classList.toggle('selected'); }
+
+function toggleFree() {
+  isFreeToggled = !isFreeToggled;
+  document.getElementById('free-toggle').className = 'toggle' + (isFreeToggled ? ' on' : '');
+}
+
+// ── SUBMIT ──
+async function submitPlace() {
+  const name = document.getElementById('name-input').value.trim();
+  const lat  = parseFloat(document.getElementById('lat-input').value);
+  const lng  = parseFloat(document.getElementById('lng-input').value);
+  const editingId = document.getElementById('editing-id').value;
+
+  if (!name) { alert('Name is required.'); return; }
+  if (isNaN(lat) || isNaN(lng)) { alert('Please select a place from the suggestions so we can pin it.'); return; }
+
+  const selectedTags = Array.from(document.querySelectorAll('#form-tags .tag-chip.selected'))
+    .map(c => c.dataset.tag);
+
+  const docData = {
+    name,
+    lat, lng,
+    tags: selectedTags,
+    free: isFreeToggled,
+    notes: document.getElementById('notes-input').value.trim(),
+    link:  document.getElementById('link-input').value.trim(),
+    status: formStatus,
+  };
+
+  const btn = document.getElementById('submit-btn');
+  btn.disabled = true;
+
+  try {
+    if (editingId) {
+      await db.collection('places').doc(editingId).update(docData);
+    } else {
+      await db.collection('places').add(docData);
+    }
+    resetForm();
+    closeAllSheets();
+  } catch(e) {
+    alert('Error saving: ' + e.message);
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+function resetForm() {
+  document.getElementById('name-input').value  = '';
+  document.getElementById('lat-input').value   = '';
+  document.getElementById('lng-input').value   = '';
+  document.getElementById('notes-input').value = '';
+  document.getElementById('link-input').value  = '';
+  document.getElementById('editing-id').value  = '';
+  document.getElementById('coords-hint').style.display = 'none';
+  document.querySelectorAll('#form-tags .tag-chip').forEach(c => c.classList.remove('selected'));
+  isFreeToggled = false;
+  document.getElementById('free-toggle').className = 'toggle';
+  formStatus = 'want';
+  updateStatusBtns();
+}
+
+// ── FIREBASE SYNC ──
+map.on('load', () => {
+  // Start with seed
+  allPlaces = [...seedPlaces];
+  renderMarkers();
+
+  db.collection('places').onSnapshot(snap => {
+    const fbPlaces = snap.docs.map(d => {
+      const v = d.data();
+      return {
+        id: d.id,
+        name: v.name || '',
+        lat:  Number(v.lat),
+        lng:  Number(v.lng),
+        tags: Array.isArray(v.tags) ? v.tags.map(t => t.toLowerCase()) : [],
+        free: !!v.free,
+        notes: v.notes || '',
+        link:  v.link  || '',
+        image: v.image || '',
+        status: v.status || null,
+        addr: v.addr || '',
+      };
+    });
+    // merge: firebase overrides seed
+    allPlaces = [...seedPlaces, ...fbPlaces];
+    renderMarkers();
+  });
+});
+</script>
 </body>
 </html>
