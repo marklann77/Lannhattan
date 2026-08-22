@@ -775,6 +775,32 @@
       <div id="autocomplete-list"></div>
     </div>
 
+    <!-- Manual coordinate entry (fallback when search comes up empty) -->
+    <div style="margin-bottom:10px;">
+      <button type="button" id="manual-toggle-btn" onclick="toggleManualCoords()"
+        style="background:none;border:none;color:var(--accent2);font-family:var(--font-mono);font-size:12px;cursor:pointer;padding:0;text-decoration:underline;">
+        Can't find it? Enter coordinates or an address manually
+      </button>
+    </div>
+    <div id="manual-coords-fields" style="display:none;">
+      <div class="form-row">
+        <div>
+          <div class="form-label" style="margin-top:0;">Latitude</div>
+          <input type="number" step="any" class="form-input" id="lat-input-visible" placeholder="40.7738" oninput="syncManualCoords()" />
+        </div>
+        <div>
+          <div class="form-label" style="margin-top:0;">Longitude</div>
+          <input type="number" step="any" class="form-input" id="lng-input-visible" placeholder="-73.9423" oninput="syncManualCoords()" />
+        </div>
+      </div>
+      <div class="form-label" style="margin-top:0;">Or paste an address</div>
+      <div style="display:flex; gap:8px; margin-bottom:14px;">
+        <input type="text" class="form-input" id="manual-address-input" placeholder="e.g. 86th St &amp; East End Ave, New York" />
+        <button type="button" class="detail-btn" style="flex-shrink:0;" onclick="geocodeManualAddress()">Look up</button>
+      </div>
+      <div id="manual-address-status" style="font-size:11px; font-family:var(--font-mono); color:var(--text-muted); margin:-8px 0 12px;"></div>
+    </div>
+
     <!-- Coords hint (shown after geocode) -->
     <div id="coords-hint" style="display:none">📍 <span id="coords-text"></span></div>
 
@@ -1241,6 +1267,8 @@ function editCurrentPlace() {
   document.getElementById('name-input').value  = p.name || '';
   document.getElementById('lat-input').value   = p.lat || '';
   document.getElementById('lng-input').value   = p.lng || '';
+  document.getElementById('lat-input-visible').value = p.lat || '';
+  document.getElementById('lng-input-visible').value = p.lng || '';
   document.getElementById('notes-input').value = p.notes || '';
   document.getElementById('link-input').value  = p.link || '';
   document.getElementById('image-input').value = p.image || '';
@@ -1279,38 +1307,123 @@ function onNameInput() {
 }
 
 async function fetchAutocomplete(q) {
-  const url = `https://api.maptiler.com/geocoding/${encodeURIComponent(q)}.json?key=${MAPTILER_KEY}&limit=5&bbox=-74.3,40.4,-73.6,41.0`;
+  const list = document.getElementById('autocomplete-list');
+  const mtUrl = `https://api.maptiler.com/geocoding/${encodeURIComponent(q)}.json?key=${MAPTILER_KEY}&limit=5&bbox=-74.3,40.4,-73.6,41.0`;
+  // MapTiler's free geocoding tier skews toward addresses/roads and often misses parks and
+  // smaller POIs (this is why "Carl Schurz Park" wasn't showing up). Nominatim (OpenStreetMap's
+  // free geocoder, no key needed) covers those better, so we query both and merge the results.
+  const nomUrl = `https://nominatim.openstreetmap.org/search?format=jsonv2&q=${encodeURIComponent(q)}&viewbox=-74.3,41.0,-73.6,40.4&bounded=1&limit=5`;
+
+  let results = [];
   try {
-    const res = await fetch(url);
+    const res = await fetch(mtUrl);
     const data = await res.json();
-    const list = document.getElementById('autocomplete-list');
-    list.innerHTML = '';
     (data.features || []).forEach(f => {
-      const div = document.createElement('div');
-      div.className = 'autocomplete-item';
-      const mainName = f.text || f.place_name.split(',')[0];
-      const sub = f.place_name.replace(f.text + ', ', '');
-      div.innerHTML = `<strong>${mainName}</strong><span>${sub}</span>`;
-      div.addEventListener('mousedown', () => selectAutocomplete(f));
-      list.appendChild(div);
+      const [lng, lat] = f.center;
+      results.push({
+        text: f.text || f.place_name.split(',')[0],
+        sub: f.place_name.replace((f.text || '') + ', ', ''),
+        lat, lng
+      });
     });
-  } catch(e) { console.error(e); }
+  } catch(e) { console.error('MapTiler geocode failed', e); }
+
+  try {
+    const res = await fetch(nomUrl);
+    const data = await res.json();
+    (data || []).forEach(r => {
+      results.push({
+        text: r.name || r.display_name.split(',')[0],
+        sub: r.display_name,
+        lat: parseFloat(r.lat), lng: parseFloat(r.lon)
+      });
+    });
+  } catch(e) { console.error('Nominatim geocode failed', e); }
+
+  // de-dupe near-identical hits (same name, close coords) and cap to 5
+  const seen = [];
+  results = results.filter(r => {
+    const dupe = seen.some(s => s.text.toLowerCase() === r.text.toLowerCase() && Math.abs(s.lat - r.lat) < 0.002 && Math.abs(s.lng - r.lng) < 0.002);
+    if (dupe) return false;
+    seen.push(r);
+    return true;
+  }).slice(0, 5);
+
+  list.innerHTML = '';
+  results.forEach(r => {
+    const div = document.createElement('div');
+    div.className = 'autocomplete-item';
+    div.innerHTML = `<strong>${r.text}</strong><span>${r.sub}</span>`;
+    div.addEventListener('mousedown', () => selectAutocomplete(r));
+    list.appendChild(div);
+  });
 }
 
-function selectAutocomplete(feature) {
-  const [lng, lat] = feature.center;
-  document.getElementById('name-input').value = feature.text || feature.place_name.split(',')[0];
-  document.getElementById('lat-input').value  = lat;
-  document.getElementById('lng-input').value  = lng;
+function selectAutocomplete(place) {
+  document.getElementById('name-input').value = place.text;
+  document.getElementById('lat-input').value  = place.lat;
+  document.getElementById('lng-input').value  = place.lng;
   document.getElementById('autocomplete-list').innerHTML = '';
-  showCoordsHint(lat, lng, feature.place_name);
-  map.flyTo({ center: [lng, lat], zoom: 15, duration: 800 });
+  showCoordsHint(place.lat, place.lng, place.sub);
+  map.flyTo({ center: [place.lng, place.lat], zoom: 15, duration: 800 });
 }
 
 function scheduleHideAutocomplete() {
   hideTimer = setTimeout(() => {
     document.getElementById('autocomplete-list').innerHTML = '';
   }, 200);
+}
+
+function toggleManualCoords() {
+  const el = document.getElementById('manual-coords-fields');
+  const opening = el.style.display === 'none';
+  el.style.display = opening ? 'block' : 'none';
+  if (opening) {
+    document.getElementById('lat-input-visible').value = document.getElementById('lat-input').value || '';
+    document.getElementById('lng-input-visible').value = document.getElementById('lng-input').value || '';
+  }
+}
+
+function syncManualCoords() {
+  const lat = document.getElementById('lat-input-visible').value;
+  const lng = document.getElementById('lng-input-visible').value;
+  document.getElementById('lat-input').value = lat;
+  document.getElementById('lng-input').value = lng;
+  if (lat && lng) {
+    showCoordsHint(lat, lng, document.getElementById('name-input').value || 'Custom location');
+    map.flyTo({ center: [parseFloat(lng), parseFloat(lat)], zoom: 15, duration: 800 });
+  }
+}
+
+async function geocodeManualAddress() {
+  const q = document.getElementById('manual-address-input').value.trim();
+  const status = document.getElementById('manual-address-status');
+  if (!q) return;
+  status.textContent = 'Looking up…';
+  let hit = null;
+  try {
+    const res = await fetch(`https://api.maptiler.com/geocoding/${encodeURIComponent(q)}.json?key=${MAPTILER_KEY}&limit=1&bbox=-74.3,40.4,-73.6,41.0`);
+    const data = await res.json();
+    if (data.features && data.features[0]) {
+      const [lng, lat] = data.features[0].center;
+      hit = { lat, lng };
+    }
+  } catch(e) { /* fall through to Nominatim */ }
+  if (!hit) {
+    try {
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=jsonv2&q=${encodeURIComponent(q)}&viewbox=-74.3,41.0,-73.6,40.4&bounded=1&limit=1`);
+      const data = await res.json();
+      if (data && data[0]) hit = { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
+    } catch(e) { /* give up below */ }
+  }
+  if (!hit) {
+    status.textContent = "Couldn't find that address — try entering coordinates directly instead.";
+    return;
+  }
+  document.getElementById('lat-input-visible').value = hit.lat;
+  document.getElementById('lng-input-visible').value = hit.lng;
+  syncManualCoords();
+  status.textContent = 'Found it — coordinates filled in below.';
 }
 
 function showCoordsHint(lat, lng, name) {
@@ -1386,6 +1499,11 @@ function resetForm() {
   document.getElementById('name-input').value  = '';
   document.getElementById('lat-input').value   = '';
   document.getElementById('lng-input').value   = '';
+  document.getElementById('lat-input-visible').value = '';
+  document.getElementById('lng-input-visible').value = '';
+  document.getElementById('manual-address-input').value = '';
+  document.getElementById('manual-address-status').textContent = '';
+  document.getElementById('manual-coords-fields').style.display = 'none';
   document.getElementById('notes-input').value = '';
   document.getElementById('link-input').value  = '';
   document.getElementById('image-input').value = '';
