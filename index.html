@@ -502,6 +502,57 @@
   }
   #plan-btn:hover { transform: scale(1.08); border-color: var(--accent); }
 
+  #drop-pin-btn {
+    position: absolute;
+    bottom: 28px;
+    right: 146px;
+    z-index: 100;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: var(--surface);
+    color: #1a1d23;
+    font-size: 20px;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.14);
+    transition: transform 0.15s, border-color 0.15s, background 0.15s;
+  }
+  #drop-pin-btn:hover { transform: scale(1.08); border-color: var(--accent); }
+  #drop-pin-btn.active { background: var(--accent); border-color: var(--accent); }
+
+  #drop-pin-banner {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 100;
+    background: #1a1d23;
+    color: #fff;
+    padding: 10px 10px 10px 16px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+  }
+  #drop-pin-banner button {
+    background: rgba(255,255,255,0.15);
+    border: none;
+    color: #fff;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 6px 10px;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+
   .plan-card {
     display: flex;
     gap: 10px;
@@ -760,6 +811,15 @@
   <!-- Plan my day button -->
   <button id="plan-btn" onclick="openPlanSheet()" title="Plan my day">🎲</button>
 
+  <!-- Drop a pin button -->
+  <button id="drop-pin-btn" onclick="toggleDropPin()" title="Drop a pin">📍</button>
+
+  <!-- Drop pin banner -->
+  <div id="drop-pin-banner" style="display:none;">
+    Tap the map to drop a pin
+    <button onclick="toggleDropPin()">Cancel</button>
+  </div>
+
   <!-- Overlay -->
   <div id="overlay" onclick="closeAllSheets()"></div>
 
@@ -955,6 +1015,9 @@ let currentDetailId = null;
 // Plan my day (wheel spin)
 let planSteps = [];
 let planResults = [];
+
+// Drop a pin
+let dropPinMode = false;
 const PLAN_TAGS = [
   { id:'coffee',    label:'Coffee',    glyph:'☕' },
   { id:'exercise',  label:'Exercise',  glyph:'🏋' },
@@ -978,6 +1041,24 @@ const map = new maplibregl.Map({
 map.dragRotate.enable();
 map.touchZoomRotate.enableRotation();
 map.addControl(new maplibregl.NavigationControl({ showCompass: false }), 'bottom-left');
+
+function toggleDropPin() {
+  dropPinMode = !dropPinMode;
+  document.getElementById('drop-pin-btn').classList.toggle('active', dropPinMode);
+  document.getElementById('drop-pin-banner').style.display = dropPinMode ? 'flex' : 'none';
+  map.getCanvas().style.cursor = dropPinMode ? 'crosshair' : '';
+}
+
+map.on('click', (e) => {
+  if (!dropPinMode) return;
+  const { lat, lng } = e.lngLat;
+  toggleDropPin();
+  openAddSheet({ lat, lng });
+  document.getElementById('lat-input-visible').value = lat.toFixed(6);
+  document.getElementById('lng-input-visible').value = lng.toFixed(6);
+  document.getElementById('manual-coords-fields').style.display = 'block';
+  document.getElementById('name-input').focus();
+});
 
 // ── SEED DATA (tags normalized to match filter pills) ──
 const seedPlaces = [
